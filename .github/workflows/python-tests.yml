@@ -1,0 +1,36 @@
+name: Python CI
+
+# Dieser Workflow wird bei jedem Commit (push) und Pull Request auf den Main-Branch ausgeführt
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Verwende ein Ubuntu-Linux-Image für die Ausführung
+
+    steps:
+    # Schritt 1: Repository klonen
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    # Schritt 2: Python installieren
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'  # Verwende die neueste 3.x-Version von Python
+
+    # Schritt 3: Abhängigkeiten installieren
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # Schritt 4: Tests ausführen
+    - name: Run tests
+      run: |
+        python -m unittest discover -s tests -p "test_*.py"
