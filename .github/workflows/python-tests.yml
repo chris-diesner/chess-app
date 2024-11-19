@@ -3,10 +3,10 @@ name: Python CI
 on:
   push:
     branches:
-      - main
+      - '*'  # Auf alle Branches reagieren
   pull_request:
     branches:
-      - main
+      - '*'  # Bei jedem Pull Request reagieren
 
 jobs:
   build:
@@ -23,18 +23,24 @@ jobs:
       with:
         python-version: '3.x'
 
-    # Schritt 3: Abhängigkeiten installieren (falls vorhanden)
+    # Schritt 3: PYTHONPATH setzen
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
+    # Schritt 4: Abhängigkeiten installieren
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    # Schritt 4: Tests mit unittest ausführen
-    - name: Run tests
+    # Schritt 5: Tests mit unittest ausführen und debuggen
+    - name: Discover and run tests
       run: |
-        python -m unittest discover -s tests -p "test_*.py"
+        echo "Discovered tests:"
+        python -m unittest discover -s tests -p "test_*.py" -v
 
-    # Schritt 5: PYTHONPATH setzen
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
-
+    # Schritt 6: Direkte Testausführung (optional, wenn Discover fehlschlägt)
+    - name: Run specific test files
+      run: |
+        python -m unittest tests.test_chess_board
+        python -m unittest tests.test_pawn
