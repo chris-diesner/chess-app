@@ -28,5 +28,5 @@ class TestChessBoard(unittest.TestCase):
             self.fail(f"print_board() hat einen Fehler verursacht: {e}")
 
 # Führt die Tests aus, wenn das Skript direkt aufgerufen wird
-if __name__ == '__main__':
-    unittest.main()
+#if __name__ == '__main__':
+ #   unittest.main()
