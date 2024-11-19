@@ -6,6 +6,10 @@ class Pawn(Figure):
         start_row, start_col = start_pos
         end_row, end_col = end_pos
         
+        #Regel: Zuege nur innerhalb Spielfeld
+        if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
+            return False
+        
         #Regel: weisser Bauer
         if self.color == "white":
             

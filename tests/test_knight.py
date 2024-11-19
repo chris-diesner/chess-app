@@ -1,5 +1,3 @@
-# tests/test_knight.py
-
 import unittest
 from figures.knight import Knight
 
