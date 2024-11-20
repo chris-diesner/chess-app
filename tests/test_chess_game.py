@@ -17,10 +17,18 @@ class TestChessGame(unittest.TestCase):
         self.assertEqual(self.game.current_player, "black")
         self.game.switch_player()
         self.assertEqual(self.game.current_player, "white")
+    
+    def test_convert_to_coordinates_should_return_string_coordinates(self):
+        result = self.game.convert_to_coordinates((0, 0))
+        self.assertEqual(result, "A8")
+        print(f"Konvertierung von (0, 0): {result}")
+        result = self.game.convert_to_coordinates((7, 7))
+        self.assertEqual(result, "H1")
+        print(f"Konvertierung von (7, 7): {result}")
 
     def test_move_no_figure_should_return_string_empty_field(self):
         result = self.game.move_figure((3, 3), (4, 4))
-        self.assertEqual(result, "Hier steht keine Figur!")
+        self.assertEqual(result, "Du hast ein leeres Feld ausgewählt!")
         print(f"Zug von (3, 3) nach (4, 4): {result}")
 
     def test_move_wrong_player_should_return_string_invalid_figure(self):
@@ -33,10 +41,12 @@ class TestChessGame(unittest.TestCase):
         self.assertEqual(result, "Ungültiger Zug!")
         print(f"Zug von (1, 0) nach (3, 1): {result}")
 
-    def test_valid_move_should_return_string_valid_move(self):
+    def test_valid_move_should_return_string_movement_notation(self):
         result = self.game.move_figure((1, 0), (3, 0))
-        self.assertEqual(result, "Guter Schachzug!")
+        expected_output = "Bauer (weiß) von A7 auf A5"
+        self.assertEqual(result, expected_output)
         print(f"Zug von (1, 0) nach (3, 0): {result}")
+        
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
         self.game.move_figure((1, 0), (3, 0))
@@ -55,7 +65,8 @@ class TestChessGame(unittest.TestCase):
         print("Brett vor Zug:")
         self.game.print_board() #debugging only - kann entfernt werden
         result = self.game.move_figure((1, 0), (2, 1))
-        self.assertEqual(result, "Guter Schachzug!")
+        expected_output = "Bauer (weiß) schlägt Turm (schwarz) von A7 auf B6"
+        self.assertEqual(result, expected_output)
         print(f"Zug von (1, 0) nach (2, 1) (Schlagen): {result}")
         self.assertIsInstance(self.game.board.fields[2][1], Pawn)
         self.assertEqual(self.game.board.fields[2][1].color, "white")

@@ -1,6 +1,10 @@
 from figures.figure import Figure
 
 class Knight(Figure):
+    
+    def __init__(self, color, position):
+        super().__init__(color, position, "Springer")
+        
     def is_move_valid(self, start_pos, end_pos, board):
         start_row, start_col = start_pos
         end_row, end_col = end_pos
