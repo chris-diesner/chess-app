@@ -4,7 +4,7 @@ from figures.pawn import Pawn
 from figures.rook import Rook
 from figures.king import King
 from figures.queen import Queen
-
+from figures.knight import Knight
 
 class TestChessGame(unittest.TestCase):
     
@@ -59,6 +59,54 @@ class TestChessGame(unittest.TestCase):
         result, attacking_figures = self.game.is_king_in_check("black")
         self.assertFalse(result)
         self.assertEqual(len(attacking_figures), 0)
+        
+    def test_is_king_in_checkmate_should_return_true(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        self.game.board.fields[1][7] = Queen("white", (1, 7))
+        result = self.game.is_king_in_checkmate("black")
+        self.assertTrue(result)
+
+    def test_is_king_in_checkmate_should_return_false_if_king_can_escape(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        self.game.board.fields[1][1] = Rook("black", (1, 1))
+        result = self.game.is_king_in_checkmate("black")
+        self.assertFalse(result)
+
+    def test_is_king_in_checkmate_should_return_false_if_attacker_can_be_taken(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        self.game.board.fields[1][7] = Rook("black", (1, 7))
+        result = self.game.is_king_in_checkmate("black")
+        self.assertFalse(result)
+    
+    def test_is_king_in_checkmate_should_return_false_if_attacker_can_be_blocked(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        #eig. Koenig blockieren
+        self.game.board.fields[1][0] = Pawn("black", (1, 0))
+        self.game.board.fields[0][1] = Pawn("black", (0, 1))
+        self.game.board.fields[1][6] = Rook("black", (1, 6))
+        result = self.game.is_king_in_checkmate("black")
+        self.assertFalse(result)
+        
+    def test_is_king_in_checkmate_should_return_false_if_knight_blocks_attacker_and_king_cannot_escape(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        #eig. Koenig blockieren
+        self.game.board.fields[1][0] = Pawn("black", (1, 0))
+        self.game.board.fields[0][1] = Pawn("black", (0, 1))
+        self.game.board.fields[2][1] = Knight("black", (2, 1))
+
+        result = self.game.is_king_in_checkmate("black")
+        self.assertFalse(result)
+
 
     def test_move_no_figure_should_return_string_empty_field(self):
         result = self.game.move_figure((3, 3), (4, 4))
@@ -80,7 +128,6 @@ class TestChessGame(unittest.TestCase):
         expected_output = "Bauer (weiß) von A7 auf A5"
         self.assertEqual(result, expected_output)
         print(f"Zug von (1, 0) nach (3, 0): {result}")
-        
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
         self.game.move_figure((1, 0), (3, 0))

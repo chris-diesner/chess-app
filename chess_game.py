@@ -23,7 +23,6 @@ class ChessGame:
                 figure = self.board.fields[row][col]
                 if figure and isinstance(figure, King) and figure.color == active_player:
                     king_pos = (row, col)
-                    print(f"koenig {active_player} gefunden {king_pos}") #debugging
                     break
                 
         for row in range(8):
@@ -34,6 +33,93 @@ class ChessGame:
                         attacking_figures.append((figure, (row, col)))
         return len(attacking_figures) > 0, attacking_figures
     
+    def is_king_in_checkmate(self, active_player):
+        king_in_check, attacking_figures = self.is_king_in_check(active_player)
+        if not king_in_check:
+            return False
+        
+        #kann angreifende Figur geschlagen werden
+        if len(attacking_figures) == 1:
+            attacker_pos = attacking_figures[0][1]
+            for row in range(8):
+                for col in range(8):
+                    figure = self.board.fields[row][col]
+                    if figure and figure.color == active_player:
+                        if figure.is_move_valid((row, col), attacker_pos, self.board.fields):
+                            if not self.simulate_move_and_check(active_player, (row, col), attacker_pos):
+                                return False
+
+        #kann König ausweichen
+        king_pos = None
+        for row in range(8):
+            for col in range(8):
+                figure = self.board.fields[row][col]
+                if isinstance(figure, King) and figure.color == active_player:
+                    king_pos = (row, col)
+                    break
+            if king_pos:
+                break
+        
+        king = self.board.fields[king_pos[0]][king_pos[1]]
+        for end_row in range(8):
+            for end_col in range(8):
+                if king.is_move_valid(king_pos, (end_row, end_col), self.board.fields):
+                    if not self.simulate_move_and_check(active_player, king_pos, (end_row, end_col)):
+                        return False
+                    
+        #kann angreifende Figur blockiert werden
+        if len(attacking_figures) == 1:
+            attacker_pos = attacking_figures[0][1]
+            blocking_positions = self.get_positions_between(king_pos, attacker_pos)
+            
+            for row in range(8):
+                for col in range(8):
+                    figure = self.board.fields[row][col]
+                    if figure and figure.color == active_player:
+                        for block_pos in blocking_positions:
+                            if figure.is_move_valid((row, col), block_pos, self.board.fields):
+                                if not self.simulate_move_and_check(active_player, (row, col), block_pos):
+                                    return False
+        return True
+        
+    #Methode zum Simulieren eines Zuges
+    def simulate_move_and_check(self, active_player, start_pos, end_pos):
+        temp_field = self.board.fields[end_pos[0]][end_pos[1]]
+        figure = self.board.fields[start_pos[0]][start_pos[1]]
+
+        self.board.fields[end_pos[0]][end_pos[1]] = figure
+        self.board.fields[start_pos[0]][start_pos[1]] = None
+        figure.position = end_pos
+
+        still_in_check = self.is_king_in_check(active_player)[0]
+
+        self.board.fields[start_pos[0]][start_pos[1]] = figure
+        self.board.fields[end_pos[0]][end_pos[1]] = temp_field
+        figure.position = start_pos
+
+        return still_in_check
+    
+    #Hilfsmethode um Felder zum Blockieren zu finden
+    def get_positions_between(self, start_pos, end_pos):
+        positions = []
+        start_row, start_col = start_pos
+        end_row, end_col = end_pos
+
+        if start_row == end_row:
+            step = 1 if start_col < end_col else -1
+            for col in range(start_col + step, end_col, step):
+                positions.append((start_row, col))
+        elif start_col == end_col:
+            step = 1 if start_row < end_row else -1
+            for row in range(start_row + step, end_row, step):
+                positions.append((row, start_col))
+        elif abs(start_row - end_row) == abs(start_col - end_col):
+            row_step = 1 if start_row < end_row else -1
+            col_step = 1 if start_col < end_col else -1
+            for i in range(1, abs(start_row - end_row)):
+                positions.append((start_row + i * row_step, start_col + i * col_step))
+        return positions
+
     def move_figure(self, start_pos, end_pos):
         figure = self.board.fields[start_pos[0]][start_pos[1]]
         target_field = self.board.fields[end_pos[0]][end_pos[1]]
