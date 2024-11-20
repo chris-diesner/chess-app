@@ -2,6 +2,8 @@ import unittest
 from chess_game import ChessGame
 from figures.pawn import Pawn
 from figures.rook import Rook
+from figures.king import King
+from figures.queen import Queen
 
 
 class TestChessGame(unittest.TestCase):
@@ -21,10 +23,42 @@ class TestChessGame(unittest.TestCase):
     def test_convert_to_coordinates_should_return_string_coordinates(self):
         result = self.game.convert_to_coordinates((0, 0))
         self.assertEqual(result, "A8")
-        print(f"Konvertierung von (0, 0): {result}")
         result = self.game.convert_to_coordinates((7, 7))
         self.assertEqual(result, "H1")
-        print(f"Konvertierung von (7, 7): {result}")
+        
+    def test_is_king_in_check_when_king_is_in_check_should_return_true_and_list_of_attacker_and_its_position(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        result, attacking_figures = self.game.is_king_in_check("black")
+        self.assertTrue(result)
+        self.assertEqual(len(attacking_figures), 1)
+        self.assertIsInstance(attacking_figures[0][0], Rook)
+        self.assertEqual(attacking_figures[0][0].color, "white")
+        self.assertEqual(attacking_figures[0][1], (0, 7))
+        
+    def test_is_king_in_check_when_king_is_in_check_should_return_true_and_list_of_attackers_and_its_positions(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("black", (0, 0))
+        self.game.board.fields[0][7] = Rook("white", (0, 7))
+        self.game.board.fields[7][7] = Queen("white", (7, 7))
+        result, attacking_figures = self.game.is_king_in_check("black")
+        self.assertTrue(result)
+        self.assertEqual(len(attacking_figures), 2)
+        self.assertIsInstance(attacking_figures[0][0], Rook)
+        self.assertEqual(attacking_figures[0][0].color, "white")
+        self.assertEqual(attacking_figures[0][1], (0, 7))
+        self.assertIsInstance(attacking_figures[1][0], Queen)
+        self.assertEqual(attacking_figures[1][0].color, "white")
+        self.assertEqual(attacking_figures[1][1], (7, 7))
+        
+    def test_is_king_in_check_when_king_is_not_in_check_should_return_false_and_empty_list_of_attackers(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][3] = King("black", (0, 3))
+        self.game.board.fields[1][5] = Rook("white", (1, 5))
+        result, attacking_figures = self.game.is_king_in_check("black")
+        self.assertFalse(result)
+        self.assertEqual(len(attacking_figures), 0)
 
     def test_move_no_figure_should_return_string_empty_field(self):
         result = self.game.move_figure((3, 3), (4, 4))
