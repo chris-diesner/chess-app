@@ -9,7 +9,7 @@ class TestRook(unittest.TestCase):
         self.black_rook = Rook("black", (7, 7))
 
     def test_valid_move_horizontal_should_return_true(self):
-        self.assertTrue(self.white_rook.is_move_valid((0, 0), (0, 7), self.board))
+        self.assertTrue(self.black_rook.is_move_valid((0, 7), (0, 0), self.board))
 
     def test_valid_vertical_move_should_return_true(self):
         self.assertTrue(self.black_rook.is_move_valid((7, 7), (0, 7), self.board))

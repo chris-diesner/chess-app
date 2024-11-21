@@ -1,6 +1,10 @@
 from figures.figure import Figure
 
 class Pawn(Figure):
+    
+    def __init__(self, color, position):
+        super().__init__(color, position, "Bauer")
+        
     def is_move_valid(self, start_pos, end_pos, board):
         
         start_row, start_col = start_pos

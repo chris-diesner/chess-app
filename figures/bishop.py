@@ -2,6 +2,9 @@ from figures.figure import Figure
 
 class Bishop(Figure):
     
+    def __init__(self, color, position):
+        super().__init__(color, position, "Läufer")
+    
     def is_move_valid(self, start_pos, end_pos, board):
         
         start_row, start_col = start_pos
