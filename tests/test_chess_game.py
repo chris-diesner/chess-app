@@ -103,10 +103,8 @@ class TestChessGame(unittest.TestCase):
         self.game.board.fields[1][0] = Pawn("black", (1, 0))
         self.game.board.fields[0][1] = Pawn("black", (0, 1))
         self.game.board.fields[2][1] = Knight("black", (2, 1))
-
         result = self.game.is_king_in_checkmate("black")
         self.assertFalse(result)
-
 
     def test_move_no_figure_should_return_string_empty_field(self):
         result = self.game.move_figure((3, 3), (4, 4))
@@ -169,6 +167,32 @@ class TestChessGame(unittest.TestCase):
         print(f"Zug von (1, 0) nach (2, 1) (leeres Feld): {result}")
         self.assertIsNone(self.game.board.fields[2][1])
         self.assertIsNotNone(self.game.board.fields[1][0])
+        
+    def test_move_while_in_check_should_return_string_invalid_move(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[1][0] = King("white", (1, 0))
+        self.game.board.fields[0][7] = Rook("black", (0, 7))
+        result = self.game.move_figure((1, 0), (0, 0))
+        self.assertEqual(result, "ungültiger Zug! König im Schach!")
+        
+    def test_is_stalemate_should_return_true_if_no_legal_move_possible(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("white", (0, 0))
+        self.game.board.fields[1][2] = King("black", (1, 2))
+        self.game.board.fields[2][2] = Knight("black", (2, 2))
+        self.game.current_player = "black"
+        self.game.switch_player()
+        self.assertTrue(self.game.check_stalemate())
+        
+    def test_is_stalemate_should_return_false_if_legal_moves_exist(self):
+        self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
+        self.game.board.fields[0][0] = King("white", (0, 0))
+        self.game.board.fields[7][7] = King("black", (7, 7))
+        self.game.board.fields[6][6] = Queen("white", (6, 6))
+        self.game.board.fields[5][5] = Pawn("black", (5, 5))
+        self.game.current_player = "white"
+        self.game.switch_player()
+        self.assertFalse(self.game.check_stalemate())
 
 if __name__ == "__main__":
     unittest.main()
