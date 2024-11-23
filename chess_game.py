@@ -1,9 +1,15 @@
-from chess_board import ChessBoard
+from figures.pawn import Pawn
+from figures.rook import Rook
+from figures.knight import Knight
+from figures.bishop import Bishop
+from figures.queen import Queen
 from figures.king import King
+from chess_board import ChessBoard
 
 class ChessGame:
     def __init__(self):
         self.board = ChessBoard()
+        self.board.setup_fields()
         self.current_player = "white"
         
     def switch_player(self):

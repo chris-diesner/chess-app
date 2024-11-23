@@ -10,17 +10,23 @@ class ChessBoard:
         self.fields = [[None for _ in range(8)] for _ in range(8)]
         self.setup_fields()
         
+    def notation_to_index(self, notation):
+        columns = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7}
+        row = 8 - int(notation[1])  # Reihen 8-1 werden zu 0-7
+        col = columns[notation[0].upper()]
+        return row, col
+        
     def setup_fields(self):
         #Bauern aufstellen
         for col in range(8):
-            self.fields[1][col] = Pawn("white", (1, col))
-            self.fields[6][col] = Pawn("black", (6, col))
+            self.fields[6][col] = Pawn("white", (6, col))
+            self.fields[1][col] = Pawn("black", (1, col))
             
         #uebrige Figuren aufstellen
         figures = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
         for col in range(8):
-            self.fields[0][col] = figures[col]("white", (0, col))
-            self.fields[7][col] = figures[col]("black", (7, col))
+            self.fields[7][col] = figures[col]("white", (7, col))
+            self.fields[0][col] = figures[col]("black", (0, col))
             
     def print_board(self):
         print("    a  b  c  d  e  f  g  h")  # Spaltenkoordinaten

@@ -2,15 +2,16 @@ import unittest
 from chess_game import ChessGame
 from figures.pawn import Pawn
 from figures.rook import Rook
-from figures.king import King
-from figures.queen import Queen
 from figures.knight import Knight
+from figures.bishop import Bishop
+from figures.queen import Queen
+from figures.king import King
 
 class TestChessGame(unittest.TestCase):
     
     def setUp(self):
         self.game = ChessGame()
-
+        
     def test_white_opens_game_should_retrun_string_white(self):
         self.assertEqual(self.game.current_player, "white")
 
@@ -112,61 +113,65 @@ class TestChessGame(unittest.TestCase):
         print(f"Zug von (3, 3) nach (4, 4): {result}")
 
     def test_move_wrong_player_should_return_string_invalid_figure(self):
-        result = self.game.move_figure((6, 0), (4, 0))
-        self.assertEqual(result, "Es ist white's Zug!")
-        print(f"Zug von (6, 0) nach (4, 0): {result}")
-
-    def test_invalid_move_should_return_string_invalid_move(self):
-        result = self.game.move_figure((1, 0), (3, 1))
-        self.assertEqual(result, "Ungültiger Zug!")
-        print(f"Zug von (1, 0) nach (3, 1): {result}")
-
-    def test_valid_move_should_return_string_movement_notation(self):
         result = self.game.move_figure((1, 0), (3, 0))
-        expected_output = "Bauer (weiß) von A7 auf A5"
-        self.assertEqual(result, expected_output)
+        self.assertEqual(result, "Es ist white's Zug!")
         print(f"Zug von (1, 0) nach (3, 0): {result}")
 
+    def test_invalid_move_should_return_string_invalid_move(self):
+        result = self.game.move_figure((6, 0), (3, 1))
+        self.assertEqual(result, "Ungültiger Zug!")
+        print(f"Zug von (6, 0) nach (3, 1): {result}")
+        
+    def test_valid_move_should_return_string_movement_notation(self):
+        result = self.game.move_figure((6, 0), (4, 0))
+        expected_output = "Bauer (weiß) von A2 auf A4"
+        self.assertEqual(result, expected_output)
+        print(f"Zug von (6, 0) nach (4, 0): {result}")
+
     def test_valid_move_updates_board_should_return_string_updated_board(self):
-        self.game.move_figure((1, 0), (3, 0))
-        self.assertIsNone(self.game.board.fields[1][0])
-        self.assertIsNotNone(self.game.board.fields[3][0])
-        print("Brett nach Zug:")
-        self.game.print_board()
+        """Testet, ob ein gültiger Zug das Brett korrekt aktualisiert."""
+        print("\nTest: test_valid_move_updates_board_should_return_string_updated_board")
+        move = self.game.move_figure((6, 0), (4, 0))  # A2 -> A4
+        print("Zug: ", move)
+        self.assertEqual(move, "Bauer (weiß) von A2 auf A4")
+        self.assertIsNone(self.game.board.fields[6][0], "Startfeld sollte leer sein")
+        self.assertIsInstance(self.game.board.fields[4][0], Pawn, "Zielfeld sollte vom Bauer besetzt sein")
+
 
     def test_valid_move_switches_player_shold_return_string_sitched_color_black(self):
-        self.game.move_figure((1, 0), (3, 0))
-        self.assertEqual(self.game.current_player, "black")
-        print(f"Aktueller Spieler nach Zug: {self.game.current_player}")
+        """Testet, ob ein gültiger Zug den Spieler wechselt."""
+        print("\nTest: test_valid_move_switches_player_shold_return_string_sitched_color_black")
+        move = self.game.move_figure((6, 0), (4, 0))  # A2 -> A4
+        print("Zug: ", move)
+        self.assertEqual(self.game.current_player, "black", "Spielerwechsel sollte korrekt sein")
+
         
     def test_capture_opponent_rook_with_own_pawn_should_return_string_valid_move_and_replaced_figure(self):
-        self.game.board.fields[2][1] = Rook("black", (2, 1)) #gegn. Turm platzieren
-        print("Brett vor Zug:")
-        self.game.print_board() #debugging only - kann entfernt werden
-        result = self.game.move_figure((1, 0), (2, 1))
-        expected_output = "Bauer (weiß) schlägt Turm (schwarz) von A7 auf B6"
-        self.assertEqual(result, expected_output)
-        print(f"Zug von (1, 0) nach (2, 1) (Schlagen): {result}")
-        self.assertIsInstance(self.game.board.fields[2][1], Pawn)
-        self.assertEqual(self.game.board.fields[2][1].color, "white")
-        self.assertIsNone(self.game.board.fields[1][0])
-        print("Brett nach Zug:")
-        self.game.print_board()
+        """Testet, ob ein Bauer eine gegnerische Figur korrekt schlägt."""
+        print("\nTest: test_capture_opponent_rook_with_own_pawn_should_return_string_valid_move_and_replaced_figure")
+        self.game.board.fields[5][1] = Rook("black", (5, 1))  # Schwarzer Turm auf B6
+        move = self.game.move_figure((6, 0), (5, 1))  # A2 -> B6
+        print("Zug: ", move)
+        self.assertEqual(move, "Bauer (weiß) schlägt Turm (schwarz) von A2 auf B3")
+        self.assertIsNone(self.game.board.fields[6][0], "Startfeld sollte leer sein")
+        self.assertIsInstance(self.game.board.fields[5][1], Pawn, "Zielfeld sollte vom Bauer besetzt sein")
+
 
     def test_move_pawn_on_blocked_field_should_string_invalid_move(self):
-        self.game.board.fields[2][1] = Rook("white", (2, 1)) #eig. Turm platzieren
-        result = self.game.move_figure((1, 0), (2, 1))
-        self.assertEqual(result, "Ungültiger Zug!")
-        print(f"Zug von (1, 0) nach (2, 1) (eigene Figur): {result}")
-        self.assertIsInstance(self.game.board.fields[2][1], Rook) #eig. Turm bleibt
-        self.assertIsNotNone(self.game.board.fields[1][0])
+        """Testet, ob ein Bauer nicht auf ein blockiertes Feld ziehen kann."""
+        print("\nTest: test_move_pawn_on_blocked_field_should_string_invalid_move")
+        self.game.board.fields[5][0] = Pawn("white", (5, 0))  # Weißer Bauer blockiert A4
+        move = self.game.move_figure((6, 0), (5, 0))  # A2 -> A4 (blockiert)
+        print("Zug: ", move)
+        self.assertEqual(move, "Ungültiger Zug!")
+
 
     def test_capture_empty_field_should_return_string_invalid_move(self):
-        result = self.game.move_figure((1, 0), (2, 1))  
-        self.assertEqual(result, "Ungültiger Zug!")
-        print(f"Zug von (1, 0) nach (2, 1) (leeres Feld): {result}")
-        self.assertIsNone(self.game.board.fields[2][1])
-        self.assertIsNotNone(self.game.board.fields[1][0])
+        """Testet, ob ein Bauer ein leeres Feld nicht schlagen kann."""
+        print("\nTest: test_capture_empty_field_should_return_string_invalid_move")
+        move = self.game.move_figure((6, 0), (5, 1))  # A2 -> B6 (leeres Feld)
+        print("Zug: ", move)
+        self.assertEqual(move, "Ungültiger Zug!")
         
     def test_move_while_in_check_should_return_string_invalid_move(self):
         self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
@@ -193,6 +198,40 @@ class TestChessGame(unittest.TestCase):
         self.game.current_player = "white"
         self.game.switch_player()
         self.assertFalse(self.game.check_stalemate())
+        
+    def test_fools_mate(self):
+        """Simuliert das Narrenschachmatt mit einem vollständig gefüllten Brett und allen Prüfungen."""
+        # Zug 1: Weiß spielt f2 -> f3
+        move_1 = self.game.move_figure((6, 5), (5, 5))  # f2 -> f3
+        self.assertIn("Bauer (weiß)", move_1, f"Falsche Rückgabe: {move_1}")
+        self.assertEqual(self.game.current_player, "black", "Spielerwechsel nach Weißs Zug fehlgeschlagen.")
+        self.assertIsNone(self.game.board.fields[6][5], "Startfeld sollte leer sein.")
+        self.assertIsInstance(self.game.board.fields[5][5], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
 
+        # Zug 2: Schwarz spielt e7 -> e5
+        move_2 = self.game.move_figure((1, 4), (3, 4))  # e7 -> e5
+        self.assertIn("Bauer (schwarz)", move_2, f"Falsche Rückgabe: {move_2}")
+        self.assertEqual(self.game.current_player, "white", "Spielerwechsel nach Schwarzs Zug fehlgeschlagen.")
+        self.assertIsNone(self.game.board.fields[1][4], "Startfeld sollte leer sein.")
+        self.assertIsInstance(self.game.board.fields[3][4], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
+
+        # Zug 3: Weiß spielt g2 -> g4
+        move_3 = self.game.move_figure((6, 6), (4, 6))  # g2 -> g4
+        self.assertIn("Bauer (weiß)", move_3, f"Falsche Rückgabe: {move_3}")
+        self.assertEqual(self.game.current_player, "black", "Spielerwechsel nach Weißs Zug fehlgeschlagen.")
+        self.assertIsNone(self.game.board.fields[6][6], "Startfeld sollte leer sein.")
+        self.assertIsInstance(self.game.board.fields[4][6], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
+
+        # Zug 4: Schwarz spielt Dame von d8 -> h4
+        move_4 = self.game.move_figure((0, 3), (4, 7))  # Dame D8 -> H4
+        self.assertIn("Dame (schwarz)", move_4, f"Falsche Rückgabe: {move_4}")
+        self.assertEqual(self.game.current_player, "white", "Spielerwechsel nach Schwarzs Zug fehlgeschlagen.")
+        self.assertIsNone(self.game.board.fields[0][3], "Startfeld sollte leer sein.")
+        self.assertIsInstance(self.game.board.fields[4][7], Queen, "Zielfeld sollte von der Dame besetzt sein.")
+
+        # Prüfung auf Schachmatt
+        is_checkmate = self.game.is_king_in_checkmate("white")
+        self.assertTrue(is_checkmate, "Der weiße König sollte Schachmatt sein.")
+        
 if __name__ == "__main__":
     unittest.main()
