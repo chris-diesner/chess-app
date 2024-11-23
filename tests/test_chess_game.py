@@ -124,34 +124,33 @@ class TestChessGame(unittest.TestCase):
         
     def test_valid_move_should_return_string_movement_notation(self):
         result = self.game.move_figure((6, 0), (4, 0))
-        expected_output = "Bauer (weiß) von A2 auf A4"
-        self.assertEqual(result, expected_output)
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
-        result = self.game.move_figure((6, 0), (4, 0)) 
-        self.assertEqual(result, "Bauer (weiß) von A2 auf A4")
+        result = self.game.move_figure((6, 0), (4, 0))
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
         self.assertIsNone(self.game.board.fields[6][0])
         self.assertIsInstance(self.game.board.fields[4][0], Pawn)
-
 
     def test_valid_move_switches_player_shold_return_string_sitched_color_black(self):
         self.game.move_figure((6, 0), (4, 0)) 
         self.assertEqual(self.game.current_player, "black")
 
-        
-    def test_capture_opponent_rook_with_own_pawn_should_return_string_move_notation_and_replaced_figure(self):
+    def test_capture_opponent_with_uuid_should_succeed(self):
         self.game.board.fields[5][1] = Rook("black", (5, 1))
-        result = self.game.move_figure((6, 0), (5, 1))
-        self.assertEqual(result, "Bauer (weiß) schlägt Turm (schwarz) von A2 auf B3")
-        self.assertIsNone(self.game.board.fields[6][0])
-        self.assertIsInstance(self.game.board.fields[5][1], Pawn)
-
+        attacking_pawn = self.game.board.fields[6][0]
+        result = self.game.move_figure((6, 0), (5, 1), attacking_pawn.id)
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("schlägt Turm (black", result)
+        self.assertIsNone(self.game.board.fields[6][0]) 
+        self.assertIsInstance(self.game.board.fields[5][1], Pawn) 
 
     def test_move_pawn_on_blocked_field_should_string_invalid_move(self):
         self.game.board.fields[5][0] = Pawn("white", (5, 0))
         result = self.game.move_figure((6, 0), (5, 0))
         self.assertEqual(result, "Ungültiger Zug!")
-
 
     def test_capture_empty_field_should_return_string_invalid_move(self):
         result = self.game.move_figure((6, 0), (5, 1)) 
@@ -215,12 +214,104 @@ class TestChessGame(unittest.TestCase):
     def test_move_history(self):
         self.game.move_figure((6, 5), (5, 5))
         self.game.move_figure((1, 4), (3, 4))
-
         self.assertEqual(len(self.game.white_moves), 1)
         self.assertEqual(len(self.game.black_moves), 1)
+        self.assertTrue(self.game.white_moves[0].startswith("Bauer (white"))
+        self.assertIn("von F2 auf F3", self.game.white_moves[0])
+        self.assertTrue(self.game.black_moves[0].startswith("Bauer (black"))
+        self.assertIn("von E7 auf E5", self.game.black_moves[0])
 
-        self.assertEqual(self.game.white_moves[0], "Bauer (weiß) von F2 auf F3")
-        self.assertEqual(self.game.black_moves[0], "Bauer (schwarz) von E7 auf E5")
+    def test_move_with_invalid_uuid_should_return_error(self):
+        invalid_uuid = "00000000-0000-0000-0000-000000000000"
+        result = self.game.move_figure((6, 0), (4, 0), invalid_uuid)
+        self.assertEqual(result, "Fehler: Figuren-ID stimmt nicht überein!")
+
+    def test_move_with_correct_uuid_should_succeed(self):
+        valid_uuid = self.game.board.fields[6][0].id
+        result = self.game.move_figure((6, 0), (4, 0), valid_uuid)
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
         
+    # [NEU] Test für Ziel-UUID-Validierung
+    def test_target_uuid_mismatch_should_return_error(self):
+        self.game.board.fields[5][1] = Rook("black", (5, 1))
+        attacking_pawn = self.game.board.fields[6][0]
+        fake_target_uuid = "00000000-0000-0000-0000-000000000000"
+        
+        # Bewegung mit einer falschen Ziel-UUID
+        result = self.game.move_figure((6, 0), (5, 1), attacking_pawn.id)
+        self.assertEqual(result, "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!")
+    
+    def test_valid_move_should_return_string_movement_notation(self):
+        result = self.game.move_figure((6, 0), (4, 0))
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
+
+    def test_valid_move_updates_board_should_return_string_updated_board(self):
+        result = self.game.move_figure((6, 0), (4, 0))
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
+        self.assertIsNone(self.game.board.fields[6][0])  # Ursprüngliche Position leer
+        self.assertIsInstance(self.game.board.fields[4][0], Pawn)  # Bauer an neuer Position
+
+    def test_capture_opponent_with_uuid_should_succeed(self):
+        self.game.board.fields[5][1] = Rook("black", (5, 1))
+        attacking_pawn = self.game.board.fields[6][0]  # Bauer auf A2
+        result = self.game.move_figure((6, 0), (5, 1), attacking_pawn.id)
+        
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("schlägt Turm (black", result)
+        self.assertIsNone(self.game.board.fields[6][0])  # Ursprüngliche Position leer
+        self.assertIsInstance(self.game.board.fields[5][1], Pawn)  # Bauer ersetzt Turm
+
+    def test_capture_opponent_rook_with_own_pawn_should_return_string_move_notation_and_replaced_figure(self):
+        self.game.board.fields[5][1] = Rook("black", (5, 1))
+        result = self.game.move_figure((6, 0), (5, 1))
+        
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("schlägt Turm (black", result)
+        self.assertIsNone(self.game.board.fields[6][0])  # Ursprüngliche Position leer
+        self.assertIsInstance(self.game.board.fields[5][1], Pawn)  # Bauer ersetzt Turm
+
+    def test_move_with_correct_uuid_should_succeed(self):
+        valid_uuid = self.game.board.fields[6][0].id
+        result = self.game.move_figure((6, 0), (4, 0), valid_uuid)
+        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertIn("von A2 auf A4", result)
+
+    def test_move_history(self):
+        self.game.move_figure((6, 5), (5, 5))  # Weißer Bauer
+        self.game.move_figure((1, 4), (3, 4))  # Schwarzer Bauer
+        self.assertEqual(len(self.game.white_moves), 1)
+        self.assertEqual(len(self.game.black_moves), 1)
+        self.assertTrue(self.game.white_moves[0].startswith("Bauer (white"))
+        self.assertIn("von F2 auf F3", self.game.white_moves[0])
+        self.assertTrue(self.game.black_moves[0].startswith("Bauer (black"))
+        self.assertIn("von E7 auf E5", self.game.black_moves[0])
+
+    def test_move_with_invalid_uuid_should_return_error(self):
+        invalid_uuid = "00000000-0000-0000-0000-000000000000"
+        result = self.game.move_figure((6, 0), (4, 0), invalid_uuid)
+        self.assertEqual(result, "Fehler: Figuren-ID stimmt nicht überein!")
+    
+    def test_move_wrong_player_should_return_string_invalid_figure(self):
+        self.game.current_player = "black"
+        result = self.game.move_figure((6, 0), (4, 0))
+        self.assertEqual(result, "Es ist black's Zug!")
+        
+    def test_target_uuid_mismatch_should_return_error(self):
+        # Vorbereitung: Erster Zug, um Zughistorie zu füllen
+        self.game.move_figure((6, 0), (4, 0))  # Weißer Bauer von A2 nach A4
+        self.game.move_figure((1, 4), (3, 4))  # Schwarzer Bauer von E7 nach E5
+
+        # Manuell gesetzter Turm auf B3
+        self.game.board.fields[3][1] = Rook("black", (3, 1))
+        attacking_pawn = self.game.board.fields[4][0]  # Weißer Bauer jetzt auf A4
+
+        # Ziel-UUID absichtlich fehlerhaft
+        result = self.game.move_figure((4, 0), (3, 1), attacking_pawn.id)
+        self.assertEqual(result, "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!")
+
+    
 if __name__ == "__main__":
     unittest.main()

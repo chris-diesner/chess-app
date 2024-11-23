@@ -5,6 +5,7 @@ from figures.bishop import Bishop
 from figures.queen import Queen
 from figures.king import King
 from chess_board import ChessBoard
+from figures.figure import Figure
 
 class ChessGame:
     def __init__(self):
@@ -136,7 +137,7 @@ class ChessGame:
                 positions.append((start_row + i * row_step, start_col + i * col_step))
         return positions
     
-    #Methode prueft auf Patt
+    #Methode prüft auf Patt
     def is_stalemate(self, current_player):
         king_in_check, _ = self.is_king_in_check(current_player)
         if king_in_check:
@@ -155,13 +156,15 @@ class ChessGame:
                                     return False
         return True
 
-
-    def move_figure(self, start_pos, end_pos):
+    def move_figure(self, start_pos, end_pos,figure_id=None):
         figure = self.board.fields[start_pos[0]][start_pos[1]]
         target_field = self.board.fields[end_pos[0]][end_pos[1]]
         
         if figure is None:
             return "Du hast ein leeres Feld ausgewählt!"
+        
+        if figure_id and figure.id != figure_id:
+            return "Fehler: Figuren-ID stimmt nicht überein!"
         
         if figure.color != self.current_player:
             return f"Es ist {self.current_player}'s Zug!"
@@ -172,10 +175,25 @@ class ChessGame:
         if self.simulate_move_and_check(self.current_player, start_pos, end_pos):
             return "ungültiger Zug! König im Schach!"
         
+        if target_field is not None:
+            if self.current_player == "black" and len(self.white_moves) > 0:
+                last_move = self.white_moves[-1]
+            elif self.current_player == "white" and len(self.black_moves) > 0:
+                last_move = self.black_moves[-1]
+            else:
+                last_move = None
+
+            if last_move and "UUID:" in last_move:
+                uuid_start = last_move.find("UUID: ") + len("UUID: ")
+                uuid_end = last_move.find(")", uuid_start)
+                expected_target_uuid = last_move[uuid_start:uuid_end]
+                if target_field.id != expected_target_uuid:
+                    return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
+
         if target_field is None:
-            move_notation = f"{figure.name} ({'weiß' if figure.color == 'white' else 'schwarz'}) von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+            move_notation = f"{figure.name} ({figure.color}, UUID: {figure.id}) von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
         else:
-            move_notation = f"{figure.name} ({'weiß' if figure.color == 'white' else 'schwarz'}) schlägt {target_field.name} ({'weiß' if target_field.color == 'white' else 'schwarz'}) von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+            move_notation = f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt {target_field.name} ({target_field.color}, UUID: {target_field.id}) von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
         
         self.board.fields[end_pos[0]][end_pos[1]] = figure
         self.board.fields[start_pos[0]][start_pos[1]] = None

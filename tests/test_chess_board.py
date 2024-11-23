@@ -1,4 +1,5 @@
 import unittest
+import uuid
 from chess_board import ChessBoard
 from figures.pawn import Pawn
 from figures.rook import Rook
@@ -6,6 +7,7 @@ from figures.knight import Knight
 from figures.bishop import Bishop
 from figures.queen import Queen
 from figures.king import King
+from figures.figure import Figure
 
 class TestChessBoard(unittest.TestCase):
 
@@ -36,6 +38,13 @@ class TestChessBoard(unittest.TestCase):
             self.assertEqual(white_piece.color, "white")
             self.assertIsInstance(black_piece, figure_class)
             self.assertEqual(black_piece.color, "black")
+            
+    def test_figure_uuids(self):
+        for row in self.board.fields:
+            for figure in row:
+                if figure is not None:
+                    self.assertTrue(hasattr(figure, "id"))
+                    self.assertIsInstance(uuid.UUID(figure.id), uuid.UUID)
 
 if __name__ == "__main__":
     unittest.main()
