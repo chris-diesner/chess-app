@@ -11,6 +11,8 @@ class ChessGame:
         self.board = ChessBoard()
         self.board.setup_fields()
         self.current_player = "white"
+        self.white_moves = []
+        self.black_moves = []
         
     def switch_player(self):
         self.current_player = "black" if self.current_player == "white" else "white"
@@ -179,10 +181,25 @@ class ChessGame:
         self.board.fields[start_pos[0]][start_pos[1]] = None
         figure.position = end_pos
         
+        if self.current_player == "white":
+            self.white_moves.append(move_notation)
+        else:
+            self.black_moves.append(move_notation)
+            
         self.switch_player()
+        self.print_move_history()
         self.print_board()
         return move_notation
     
     def print_board(self):
         print(f"Am Zug: {self.current_player}")
         self.board.print_board()
+        
+    def print_move_history(self):
+        print("Zug-Historie:")
+        print("Weiß:")
+        for i, move in enumerate(self.white_moves, 1):
+            print(f"{i}. {move}")
+        print("Schwarz:")
+        for i, move in enumerate(self.black_moves, 1):
+            print(f"{i}. {move}")

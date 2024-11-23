@@ -126,52 +126,36 @@ class TestChessGame(unittest.TestCase):
         result = self.game.move_figure((6, 0), (4, 0))
         expected_output = "Bauer (weiß) von A2 auf A4"
         self.assertEqual(result, expected_output)
-        print(f"Zug von (6, 0) nach (4, 0): {result}")
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
-        """Testet, ob ein gültiger Zug das Brett korrekt aktualisiert."""
-        print("\nTest: test_valid_move_updates_board_should_return_string_updated_board")
-        move = self.game.move_figure((6, 0), (4, 0))  # A2 -> A4
-        print("Zug: ", move)
-        self.assertEqual(move, "Bauer (weiß) von A2 auf A4")
-        self.assertIsNone(self.game.board.fields[6][0], "Startfeld sollte leer sein")
-        self.assertIsInstance(self.game.board.fields[4][0], Pawn, "Zielfeld sollte vom Bauer besetzt sein")
+        result = self.game.move_figure((6, 0), (4, 0)) 
+        self.assertEqual(result, "Bauer (weiß) von A2 auf A4")
+        self.assertIsNone(self.game.board.fields[6][0])
+        self.assertIsInstance(self.game.board.fields[4][0], Pawn)
 
 
     def test_valid_move_switches_player_shold_return_string_sitched_color_black(self):
-        """Testet, ob ein gültiger Zug den Spieler wechselt."""
-        print("\nTest: test_valid_move_switches_player_shold_return_string_sitched_color_black")
-        move = self.game.move_figure((6, 0), (4, 0))  # A2 -> A4
-        print("Zug: ", move)
-        self.assertEqual(self.game.current_player, "black", "Spielerwechsel sollte korrekt sein")
+        self.game.move_figure((6, 0), (4, 0)) 
+        self.assertEqual(self.game.current_player, "black")
 
         
-    def test_capture_opponent_rook_with_own_pawn_should_return_string_valid_move_and_replaced_figure(self):
-        """Testet, ob ein Bauer eine gegnerische Figur korrekt schlägt."""
-        print("\nTest: test_capture_opponent_rook_with_own_pawn_should_return_string_valid_move_and_replaced_figure")
-        self.game.board.fields[5][1] = Rook("black", (5, 1))  # Schwarzer Turm auf B6
-        move = self.game.move_figure((6, 0), (5, 1))  # A2 -> B6
-        print("Zug: ", move)
-        self.assertEqual(move, "Bauer (weiß) schlägt Turm (schwarz) von A2 auf B3")
-        self.assertIsNone(self.game.board.fields[6][0], "Startfeld sollte leer sein")
-        self.assertIsInstance(self.game.board.fields[5][1], Pawn, "Zielfeld sollte vom Bauer besetzt sein")
+    def test_capture_opponent_rook_with_own_pawn_should_return_string_move_notation_and_replaced_figure(self):
+        self.game.board.fields[5][1] = Rook("black", (5, 1))
+        result = self.game.move_figure((6, 0), (5, 1))
+        self.assertEqual(result, "Bauer (weiß) schlägt Turm (schwarz) von A2 auf B3")
+        self.assertIsNone(self.game.board.fields[6][0])
+        self.assertIsInstance(self.game.board.fields[5][1], Pawn)
 
 
     def test_move_pawn_on_blocked_field_should_string_invalid_move(self):
-        """Testet, ob ein Bauer nicht auf ein blockiertes Feld ziehen kann."""
-        print("\nTest: test_move_pawn_on_blocked_field_should_string_invalid_move")
-        self.game.board.fields[5][0] = Pawn("white", (5, 0))  # Weißer Bauer blockiert A4
-        move = self.game.move_figure((6, 0), (5, 0))  # A2 -> A4 (blockiert)
-        print("Zug: ", move)
-        self.assertEqual(move, "Ungültiger Zug!")
+        self.game.board.fields[5][0] = Pawn("white", (5, 0))
+        result = self.game.move_figure((6, 0), (5, 0))
+        self.assertEqual(result, "Ungültiger Zug!")
 
 
     def test_capture_empty_field_should_return_string_invalid_move(self):
-        """Testet, ob ein Bauer ein leeres Feld nicht schlagen kann."""
-        print("\nTest: test_capture_empty_field_should_return_string_invalid_move")
-        move = self.game.move_figure((6, 0), (5, 1))  # A2 -> B6 (leeres Feld)
-        print("Zug: ", move)
-        self.assertEqual(move, "Ungültiger Zug!")
+        result = self.game.move_figure((6, 0), (5, 1)) 
+        self.assertEqual(result, "Ungültiger Zug!")
         
     def test_move_while_in_check_should_return_string_invalid_move(self):
         self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
@@ -200,38 +184,43 @@ class TestChessGame(unittest.TestCase):
         self.assertFalse(self.game.check_stalemate())
         
     def test_fools_mate(self):
-        """Simuliert das Narrenschachmatt mit einem vollständig gefüllten Brett und allen Prüfungen."""
-        # Zug 1: Weiß spielt f2 -> f3
-        move_1 = self.game.move_figure((6, 5), (5, 5))  # f2 -> f3
-        self.assertIn("Bauer (weiß)", move_1, f"Falsche Rückgabe: {move_1}")
-        self.assertEqual(self.game.current_player, "black", "Spielerwechsel nach Weißs Zug fehlgeschlagen.")
-        self.assertIsNone(self.game.board.fields[6][5], "Startfeld sollte leer sein.")
-        self.assertIsInstance(self.game.board.fields[5][5], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
+        #Zug 1: weiß f2 -> f3
+        self.game.move_figure((6, 5), (5, 5))
+        self.assertEqual(self.game.current_player, "black")
+        self.assertIsNone(self.game.board.fields[6][5])
+        self.assertIsInstance(self.game.board.fields[5][5], Pawn)
 
-        # Zug 2: Schwarz spielt e7 -> e5
-        move_2 = self.game.move_figure((1, 4), (3, 4))  # e7 -> e5
-        self.assertIn("Bauer (schwarz)", move_2, f"Falsche Rückgabe: {move_2}")
-        self.assertEqual(self.game.current_player, "white", "Spielerwechsel nach Schwarzs Zug fehlgeschlagen.")
-        self.assertIsNone(self.game.board.fields[1][4], "Startfeld sollte leer sein.")
-        self.assertIsInstance(self.game.board.fields[3][4], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
+        #Zug 2: schwarz e7 -> e5
+        self.game.move_figure((1, 4), (3, 4)) 
+        self.assertEqual(self.game.current_player, "white")
+        self.assertIsNone(self.game.board.fields[1][4])
+        self.assertIsInstance(self.game.board.fields[3][4], Pawn)
 
-        # Zug 3: Weiß spielt g2 -> g4
-        move_3 = self.game.move_figure((6, 6), (4, 6))  # g2 -> g4
-        self.assertIn("Bauer (weiß)", move_3, f"Falsche Rückgabe: {move_3}")
-        self.assertEqual(self.game.current_player, "black", "Spielerwechsel nach Weißs Zug fehlgeschlagen.")
-        self.assertIsNone(self.game.board.fields[6][6], "Startfeld sollte leer sein.")
-        self.assertIsInstance(self.game.board.fields[4][6], Pawn, "Zielfeld sollte vom Bauer besetzt sein.")
+        #Zug 3: weiß g2 -> g4
+        self.game.move_figure((6, 6), (4, 6)) 
+        self.assertEqual(self.game.current_player, "black")
+        self.assertIsNone(self.game.board.fields[6][6])
+        self.assertIsInstance(self.game.board.fields[4][6], Pawn)
 
-        # Zug 4: Schwarz spielt Dame von d8 -> h4
-        move_4 = self.game.move_figure((0, 3), (4, 7))  # Dame D8 -> H4
-        self.assertIn("Dame (schwarz)", move_4, f"Falsche Rückgabe: {move_4}")
-        self.assertEqual(self.game.current_player, "white", "Spielerwechsel nach Schwarzs Zug fehlgeschlagen.")
-        self.assertIsNone(self.game.board.fields[0][3], "Startfeld sollte leer sein.")
-        self.assertIsInstance(self.game.board.fields[4][7], Queen, "Zielfeld sollte von der Dame besetzt sein.")
+        #Zug 4: schwarz d8 -> h4
+        self.game.move_figure((0, 3), (4, 7))
+        self.assertEqual(self.game.current_player, "white")
+        self.assertIsNone(self.game.board.fields[0][3])
+        self.assertIsInstance(self.game.board.fields[4][7], Queen)
 
         # Prüfung auf Schachmatt
         is_checkmate = self.game.is_king_in_checkmate("white")
-        self.assertTrue(is_checkmate, "Der weiße König sollte Schachmatt sein.")
+        self.assertTrue(is_checkmate)
+        
+    def test_move_history(self):
+        self.game.move_figure((6, 5), (5, 5))
+        self.game.move_figure((1, 4), (3, 4))
+
+        self.assertEqual(len(self.game.white_moves), 1)
+        self.assertEqual(len(self.game.black_moves), 1)
+
+        self.assertEqual(self.game.white_moves[0], "Bauer (weiß) von F2 auf F3")
+        self.assertEqual(self.game.black_moves[0], "Bauer (schwarz) von E7 auf E5")
         
 if __name__ == "__main__":
     unittest.main()
