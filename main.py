@@ -1,4 +1,5 @@
-from chess_board import ChessBoard
+from chess_game import ChessGame
 
-board = ChessBoard()
-board.print_board()
+if __name__ == "__main__":
+    game = ChessGame()
+    game.board.print_board()
