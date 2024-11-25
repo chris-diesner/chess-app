@@ -1,5 +1,6 @@
 from chess_board import ChessBoard
 from figures.king import King
+from figures.pawn import Pawn
 from user import User
 
 class ChessGame:
@@ -7,6 +8,7 @@ class ChessGame:
         self.board = ChessBoard()
         self.board.setup_fields()
         self.current_player = "white"
+        self.last_move = None
         self.white_player = User(white_name, "white")
         self.black_player = User(black_name, "black")
 
@@ -155,6 +157,13 @@ class ChessGame:
         if figure is None:
             return "Du hast ein leeres Feld ausgewählt!"
         
+        if isinstance(figure, Pawn) and target_field is None:
+            if abs(end_pos[1] - start_pos[1]) == 1:
+                captured_pawn_row = start_pos[0] + (1 if figure.color == "white" else -1)
+                captured_pawn = self.board.fields[captured_pawn_row][end_pos[1]]
+                if isinstance(captured_pawn, Pawn) and captured_pawn.color != figure.color:
+                    self.board.fields[captured_pawn_row][end_pos[1]] = None
+        
         if figure_id and figure.id != figure_id:
             return "Fehler: Figuren-ID stimmt nicht überein!"
         
@@ -206,6 +215,14 @@ class ChessGame:
         figure.position = end_pos
         current_player = self.get_current_player()
         current_player.record_move(move_notation)
+        self.last_move = {
+            "figure": figure,
+            "start_pos": start_pos,
+            "end_pos": end_pos,
+            "two_square_pawn_move": isinstance(figure, Pawn) and abs(start_pos[0] - end_pos[0]) == 2,
+        }
+        print("DEBUG: Move Notation ->", move_notation)
+        print("DEBUG: Last Move Recorded ->", self.last_move)
         self.switch_player()
         return move_notation
 
