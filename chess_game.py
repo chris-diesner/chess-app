@@ -157,20 +157,13 @@ class ChessGame:
         if figure is None:
             return "Du hast ein leeres Feld ausgewählt!"
         
-        if isinstance(figure, Pawn) and target_field is None:
-            if abs(end_pos[1] - start_pos[1]) == 1:
-                captured_pawn_row = start_pos[0] + (1 if figure.color == "white" else -1)
-                captured_pawn = self.board.fields[captured_pawn_row][end_pos[1]]
-                if isinstance(captured_pawn, Pawn) and captured_pawn.color != figure.color:
-                    self.board.fields[captured_pawn_row][end_pos[1]] = None
-        
         if figure_id and figure.id != figure_id:
             return "Fehler: Figuren-ID stimmt nicht überein!"
         
         if figure.color != self.current_player:
             return f"Es ist {self.current_player}'s Zug!"
         
-        if not figure.is_move_valid(start_pos, end_pos, self.board.fields):
+        if not figure.is_move_valid(start_pos, end_pos, self.board.fields, self.last_move):
             return "Ungültiger Zug!"
         
         if self.simulate_move_and_check(self.current_player, start_pos, end_pos):
@@ -198,6 +191,19 @@ class ChessGame:
                 except ValueError:
                     return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
 
+        #en passant
+        if isinstance(figure, Pawn) and target_field is None:
+            if abs(end_pos[1] - start_pos[1]) == 1:
+                captured_pawn_row = end_pos[0] + (1 if figure.color == "white" else -1)
+                captured_pawn = self.board.fields[captured_pawn_row][end_pos[1]]
+                if isinstance(captured_pawn, Pawn) and captured_pawn.color != figure.color:
+                    self.board.fields[captured_pawn_row][end_pos[1]] = None
+                    move_notation = (
+                        f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
+                        f"{captured_pawn.name} ({captured_pawn.color}, UUID: {captured_pawn.id}) "
+                        f"en passant von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+                    )
+                    
         if target_field is None:
             move_notation = (
                 f"{figure.name} ({figure.color}, UUID: {figure.id}) "
@@ -209,7 +215,7 @@ class ChessGame:
                 f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
                 f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
             )
-        
+                    
         self.board.fields[end_pos[0]][end_pos[1]] = figure
         self.board.fields[start_pos[0]][start_pos[1]] = None
         figure.position = end_pos
@@ -221,8 +227,7 @@ class ChessGame:
             "end_pos": end_pos,
             "two_square_pawn_move": isinstance(figure, Pawn) and abs(start_pos[0] - end_pos[0]) == 2,
         }
-        print("DEBUG: Move Notation ->", move_notation)
-        print("DEBUG: Last Move Recorded ->", self.last_move)
+        
         self.switch_player()
         return move_notation
 

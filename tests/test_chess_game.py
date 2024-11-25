@@ -292,14 +292,39 @@ class TestChessGame(unittest.TestCase):
         result = self.game.move_figure((4, 0), (3, 1), attacking_pawn.id)
         self.assertEqual(result, "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!")
         
-    def test_legal_en_passant_rule_schould_return_valid_move_history(self):
-        self.game.move_figure((6, 4), (4, 4))
+    def test_legal_en_passant_rule_white_should_return_valid_move_history(self):
+        #Zug 1: weiß e2 -> e4
+        self.game.move_figure((6, 4), (4, 4)) 
+        #Zug 2: schwarz b7 -> b6
         self.game.move_figure((1, 1), (2, 1))
+        #Zug 3: weiß e4 -> e5
         self.game.move_figure((4, 4), (3, 4))
+        #Zug 4: schwarz d7 -> d5
         self.game.move_figure((1, 3), (3, 3))
         result = self.game.move_figure((3, 4), (2, 3))
         self.assertTrue(result.startswith("Bauer (white"))
         self.assertIn("von E5 auf D6", result)
+        self.assertIsNone(self.game.board.fields[3][3])
+        self.assertIsInstance(self.game.board.fields[2][3], Pawn)
+        self.assertEqual(self.game.board.fields[2][3].color, "white")
+
+    def test_legal_en_passant_rule_black_should_return_valid_move_history(self):
+        #Zug 1: weiß e2 -> e3
+        self.game.move_figure((6, 4), (5, 4))
+        #Zug 2: schwarz b7 -> b5
+        self.game.move_figure((1, 1), (3, 1))
+        #Zug 3: weiß h2 -> h4
+        self.game.move_figure((6, 7), (4, 7))
+        #Zug 4: schwarz b5 -> b4
+        self.game.move_figure((3, 1), (4, 1))
+        #Zug 5: weiß e2c2 -> c4
+        self.game.move_figure((6, 2), (4, 2))
+        result = self.game.move_figure((4, 1), (5, 2))
+        self.assertTrue(result.startswith("Bauer (black"))
+        self.assertIn("von B4 auf C3", result)
+        self.assertIsNone(self.game.board.fields[4][2])
+        self.assertIsInstance(self.game.board.fields[5][2], Pawn)
+        self.assertEqual(self.game.board.fields[5][2].color, "black")
 
 if __name__ == "__main__":
     unittest.main()
