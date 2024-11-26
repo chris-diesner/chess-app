@@ -6,6 +6,9 @@ class Rook(Figure):
         super().__init__(color, position, "Turm")
     
     def is_move_valid(self, start_pos, end_pos, board, last_move=None):
+        if not start_pos or not end_pos:
+            print("DEBUG: Invalid positions provided to Rook.is_move_valid")
+            return False
         
         start_row, start_col = start_pos
         end_row, end_col = end_pos

@@ -155,29 +155,25 @@ class ChessGame:
         return True
     
     def promote_pawn(self, position, promotion_choice):
+        #aktuell nur mit Dame weil keine user eingabe
         pawn = self.board.fields[position[0]][position[1]]
         if not isinstance(pawn, Pawn):
-            raise ValueError("Only pawns can be promoted.")
-        
-        # Create the new piece based on promotion choice
-        if promotion_choice == "Dame":  # Queen
+            raise ValueError("Nur Bauern sollten umgewandelt werden können.")
+        if promotion_choice == "Dame":
             promoted_piece = Queen(pawn.color, position)
-        elif promotion_choice == "Turm":  # Rook
+        elif promotion_choice == "Turm":
             promoted_piece = Rook(pawn.color, position)
-        elif promotion_choice == "Läufer":  # Bishop
+        elif promotion_choice == "Läufer":
             promoted_piece = Bishop(pawn.color, position)
-        elif promotion_choice == "Springer":  # Knight
+        elif promotion_choice == "Springer":
             promoted_piece = Knight(pawn.color, position)
         else:
-            raise ValueError(f"Invalid promotion choice: {promotion_choice}")
+            raise ValueError(f"Fehlerhaft Auswahl: {promotion_choice}")
 
-        # Retain the Pawn's UUID
         promoted_piece.id = pawn.id
 
-        # Replace the Pawn with the promoted piece
         self.board.fields[position[0]][position[1]] = promoted_piece
 
-        # Record the promotion in move history
         move_notation = (
             f"Bauer ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
             f"zu {promotion_choice}"
@@ -185,13 +181,13 @@ class ChessGame:
         self.get_current_player().record_move(move_notation)
         return move_notation
 
-
-
-
     def move_figure(self, start_pos, end_pos, figure_id=None):
+        if start_pos == end_pos:
+            return "Ungültiger Zug: Start- und Zielposition dürfen nicht identisch sein!"
+
         figure = self.board.fields[start_pos[0]][start_pos[1]]
         target_field = self.board.fields[end_pos[0]][end_pos[1]]
-        
+
         if figure is None:
             return "Du hast ein leeres Feld ausgewählt!"
         
@@ -206,69 +202,23 @@ class ChessGame:
         
         if self.simulate_move_and_check(self.current_player, start_pos, end_pos):
             return "ungültiger Zug! König im Schach!"
-        
-        if target_field is not None and target_field.color == figure.color:
+
+        if target_field and target_field.color == figure.color:
             return "Ungültiger Zug! Zielfeld ist durch eine eigene Figur blockiert."
         
-        if target_field is not None:
-            last_move = None
-            if self.current_player == "black" and self.white_player.move_history:
-                last_move = self.white_player.move_history[-1]
-            elif self.current_player == "white" and self.black_player.move_history:
-                last_move = self.black_player.move_history[-1]
-                print(f"DEBUG: last move from history: {last_move}")
+        uuid_validation_result = self.validate_target_field_uuid(target_field)
+        if uuid_validation_result:
+            return uuid_validation_result
 
-            if last_move and "UUID:" in last_move:
-                try:
-                    uuid_start = last_move.find("UUID: ") + len("UUID: ")
-                    uuid_end = last_move.find(")", uuid_start)
-                    if uuid_start == -1 or uuid_end == -1:
-                        return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
-                    expected_target_uuid = last_move[uuid_start:uuid_end]
-                    print(f"DEBUG: Extracted UUID from history: {expected_target_uuid}")
-                    
-                    if target_field.id != expected_target_uuid:
-                        return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
-                except ValueError as e:
-                    print(f"DEBUG: Error extracting UUID from history: {e}")
-                    return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
-            else:
-                print(f"DEBUG: No valid UUID found in last move: {last_move}")
-                return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
+        en_passant_notation = self.en_passant_logic(figure, start_pos, end_pos, target_field)
+        if en_passant_notation:
+            return en_passant_notation
 
-        #en passant
-        if isinstance(figure, Pawn) and target_field is None:
-            if abs(end_pos[1] - start_pos[1]) == 1:
-                captured_pawn_row = end_pos[0] + (1 if figure.color == "white" else -1)
-                captured_pawn = self.board.fields[captured_pawn_row][end_pos[1]]
-                if isinstance(captured_pawn, Pawn) and captured_pawn.color != figure.color:
-                    self.board.fields[captured_pawn_row][end_pos[1]] = None
-                    move_notation = (
-                        f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
-                        f"{captured_pawn.name} ({captured_pawn.color}, UUID: {captured_pawn.id}) "
-                        f"en passant von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
-                    )
-                    
-        if target_field is None:
-            move_notation = (
-                f"{figure.name} ({figure.color}, UUID: {figure.id}) "
-                f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
-            )
-        else:
-            move_notation = (
-                f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
-                f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
-                f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
-            )
-                    
-        self.board.fields[end_pos[0]][end_pos[1]] = figure
-        self.board.fields[start_pos[0]][start_pos[1]] = None
-        figure.position = end_pos
-        current_player = self.get_current_player()
-        current_player.record_move(move_notation)
-        
-        if isinstance(figure, Pawn) and end_pos[0] in (0, 7):  # Check for both white and black
-            promotion_choice = self.get_current_player().choose_promotion()  # Fetch promotion choice
+        move_notation = self.generate_move_notation(figure, target_field, start_pos, end_pos)
+        self.execute_move(figure, start_pos, end_pos, move_notation)
+
+        if isinstance(figure, Pawn) and end_pos[0] in (0, 7):
+            promotion_choice = self.get_current_player().choose_promotion()
             self.promote_pawn(end_pos, promotion_choice)
 
         self.last_move = {
@@ -277,9 +227,85 @@ class ChessGame:
             "end_pos": end_pos,
             "two_square_pawn_move": isinstance(figure, Pawn) and abs(start_pos[0] - end_pos[0]) == 2,
         }
-        
         self.switch_player()
         return move_notation
+
+    def validate_target_field_uuid(self, target_field):
+        if target_field:
+            last_move = self.get_opponent_last_move_or_synthetic(target_field)
+            if last_move and "UUID:" in last_move:
+                try:
+                    uuid_start = last_move.find("UUID: ") + len("UUID: ")
+                    uuid_end = last_move.find(")", uuid_start)
+                    if uuid_start == -1 or uuid_end == -1:
+                        return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
+                    expected_target_uuid = last_move[uuid_start:uuid_end]
+                    if target_field.id != expected_target_uuid:
+                        return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
+                except ValueError:
+                    return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
+        return None
+
+    def get_opponent_last_move_or_synthetic(self, target_field):
+        last_move = None
+        if self.current_player == "black" and self.white_player.move_history:
+            last_move = self.white_player.move_history[-1]
+        elif self.current_player == "white" and self.black_player.move_history:
+            last_move = self.black_player.move_history[-1]
+
+        if not last_move or "UUID:" not in last_move:
+            start_pos = target_field.position
+            last_move = (
+                f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
+                f"auf {self.convert_to_coordinates(start_pos)}"
+            )
+        return last_move
+
+    def en_passant_logic(self, figure, start_pos, end_pos, target_field):
+        if isinstance(figure, Pawn) and target_field is None:
+            if abs(end_pos[1] - start_pos[1]) == 1: 
+                captured_pawn_row = start_pos[0] 
+                captured_pawn_col = end_pos[1]
+                captured_pawn = self.board.fields[captured_pawn_row][captured_pawn_col]
+                
+                if (
+                    isinstance(captured_pawn, Pawn)
+                    and captured_pawn.color != figure.color
+                    and self.last_move
+                    and self.last_move["figure"] == captured_pawn
+                    and self.last_move["two_square_pawn_move"]
+                ):
+                    self.board.fields[captured_pawn_row][captured_pawn_col] = None
+                    
+                    move_notation = (
+                        f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
+                        f"{captured_pawn.name} ({captured_pawn.color}, UUID: {captured_pawn.id}) "
+                        f"en passant von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+                    )
+                    
+                    self.execute_move(figure, start_pos, end_pos, move_notation)
+                    return move_notation
+        return None
+
+    def generate_move_notation(self, figure, target_field, start_pos, end_pos):
+        if target_field is None:
+            return (
+                f"{figure.name} ({figure.color}, UUID: {figure.id}) "
+                f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+            )
+        else:
+            return (
+                f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
+                f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
+                f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+            )
+
+    def execute_move(self, figure, start_pos, end_pos, move_notation):
+        self.board.fields[end_pos[0]][end_pos[1]] = figure
+        self.board.fields[start_pos[0]][start_pos[1]] = None
+        figure.position = end_pos
+        self.get_current_player().record_move(move_notation)
+        figure.move_history.append(move_notation)
 
     def print_board(self):
         print(f"Am Zug: {self.current_player}")
