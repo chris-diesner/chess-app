@@ -160,19 +160,19 @@ class ChessGame:
         if not isinstance(pawn, Pawn):
             raise ValueError("Nur Bauern sollten umgewandelt werden können.")
         if promotion_choice == "Dame":
-            promoted_piece = Queen(pawn.color, position)
+            promoted_figure = Queen(pawn.color, position)
         elif promotion_choice == "Turm":
-            promoted_piece = Rook(pawn.color, position)
+            promoted_figure = Rook(pawn.color, position)
         elif promotion_choice == "Läufer":
-            promoted_piece = Bishop(pawn.color, position)
+            promoted_figure = Bishop(pawn.color, position)
         elif promotion_choice == "Springer":
-            promoted_piece = Knight(pawn.color, position)
+            promoted_figure = Knight(pawn.color, position)
         else:
             raise ValueError(f"Fehlerhaft Auswahl: {promotion_choice}")
 
-        promoted_piece.id = pawn.id
+        promoted_figure.id = pawn.id
 
-        self.board.fields[position[0]][position[1]] = promoted_piece
+        self.board.fields[position[0]][position[1]] = promoted_figure
 
         move_notation = (
             f"Bauer ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
@@ -210,7 +210,7 @@ class ChessGame:
         if uuid_validation_result:
             return uuid_validation_result
 
-        en_passant_notation = self.en_passant_logic(figure, start_pos, end_pos, target_field)
+        en_passant_notation = self.handle_en_passant(figure, start_pos, end_pos, target_field)
         if en_passant_notation:
             return en_passant_notation
 
@@ -232,7 +232,7 @@ class ChessGame:
 
     def validate_target_field_uuid(self, target_field):
         if target_field:
-            last_move = self.get_opponent_last_move_or_synthetic(target_field)
+            last_move = self.get_last_move_or_set_start(target_field)
             if last_move and "UUID:" in last_move:
                 try:
                     uuid_start = last_move.find("UUID: ") + len("UUID: ")
@@ -246,7 +246,7 @@ class ChessGame:
                     return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
         return None
 
-    def get_opponent_last_move_or_synthetic(self, target_field):
+    def get_last_move_or_set_start(self, target_field):
         last_move = None
         if self.current_player == "black" and self.white_player.move_history:
             last_move = self.white_player.move_history[-1]
@@ -261,7 +261,7 @@ class ChessGame:
             )
         return last_move
 
-    def en_passant_logic(self, figure, start_pos, end_pos, target_field):
+    def handle_en_passant(self, figure, start_pos, end_pos, target_field):
         if isinstance(figure, Pawn) and target_field is None:
             if abs(end_pos[1] - start_pos[1]) == 1: 
                 captured_pawn_row = start_pos[0] 
