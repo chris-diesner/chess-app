@@ -1,6 +1,10 @@
 from chess_board import ChessBoard
 from figures.king import King
 from figures.pawn import Pawn
+from figures.queen import Queen
+from figures.rook import Rook
+from figures.knight import Knight
+from figures.bishop import Bishop
 from user import User
 
 class ChessGame:
@@ -149,6 +153,40 @@ class ChessGame:
                                 if not self.simulate_move_and_check(current_player, start_pos, end_pos):
                                     return False
         return True
+    
+    def promote_pawn(self, position, promotion_choice):
+        pawn = self.board.fields[position[0]][position[1]]
+        if not isinstance(pawn, Pawn):
+            raise ValueError("Only pawns can be promoted.")
+        
+        # Create the new piece based on promotion choice
+        if promotion_choice == "Dame":  # Queen
+            promoted_piece = Queen(pawn.color, position)
+        elif promotion_choice == "Turm":  # Rook
+            promoted_piece = Rook(pawn.color, position)
+        elif promotion_choice == "Läufer":  # Bishop
+            promoted_piece = Bishop(pawn.color, position)
+        elif promotion_choice == "Springer":  # Knight
+            promoted_piece = Knight(pawn.color, position)
+        else:
+            raise ValueError(f"Invalid promotion choice: {promotion_choice}")
+
+        # Retain the Pawn's UUID
+        promoted_piece.id = pawn.id
+
+        # Replace the Pawn with the promoted piece
+        self.board.fields[position[0]][position[1]] = promoted_piece
+
+        # Record the promotion in move history
+        move_notation = (
+            f"Bauer ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
+            f"zu {promotion_choice}"
+        )
+        self.get_current_player().record_move(move_notation)
+        return move_notation
+
+
+
 
     def move_figure(self, start_pos, end_pos, figure_id=None):
         figure = self.board.fields[start_pos[0]][start_pos[1]]
@@ -178,6 +216,7 @@ class ChessGame:
                 last_move = self.white_player.move_history[-1]
             elif self.current_player == "white" and self.black_player.move_history:
                 last_move = self.black_player.move_history[-1]
+                print(f"DEBUG: last move from history: {last_move}")
 
             if last_move and "UUID:" in last_move:
                 try:
@@ -186,10 +225,16 @@ class ChessGame:
                     if uuid_start == -1 or uuid_end == -1:
                         return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
                     expected_target_uuid = last_move[uuid_start:uuid_end]
+                    print(f"DEBUG: Extracted UUID from history: {expected_target_uuid}")
+                    
                     if target_field.id != expected_target_uuid:
                         return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
-                except ValueError:
+                except ValueError as e:
+                    print(f"DEBUG: Error extracting UUID from history: {e}")
                     return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
+            else:
+                print(f"DEBUG: No valid UUID found in last move: {last_move}")
+                return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
 
         #en passant
         if isinstance(figure, Pawn) and target_field is None:
@@ -221,6 +266,11 @@ class ChessGame:
         figure.position = end_pos
         current_player = self.get_current_player()
         current_player.record_move(move_notation)
+        
+        if isinstance(figure, Pawn) and end_pos[0] in (0, 7):  # Check for both white and black
+            promotion_choice = self.get_current_player().choose_promotion()  # Fetch promotion choice
+            self.promote_pawn(end_pos, promotion_choice)
+
         self.last_move = {
             "figure": figure,
             "start_pos": start_pos,

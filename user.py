@@ -19,3 +19,7 @@ class User:
 
     def get_captured_pieces_summary(self):
         return ", ".join(f"{piece.name} ({piece.color})" for piece in self.captured_figures)
+    
+    def choose_promotion(self):
+        # For simplicity, always choose Queen in automated tests
+        return "Dame"
