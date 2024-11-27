@@ -31,6 +31,10 @@ Da bislang kein Input/Output für die User-Interaktion implementiert wurde, kann
 
 Von Beginn an wurde überwiegend **testgetrieben entwickelt**. Dies erleichtert die Implementierung der Methoden gemäß der Schachregeln und stellt sicher, dass jede Erweiterung präzise und robust bleibt. Die Entwicklung wurde auf verschiedene Branches aufgeteilt, um parallele Arbeiten zu ermöglichen. Zusätzlich wurde **Continuous Integration (CI)** eingerichtet, um alle Tests automatisch auszuführen und sicherzustellen, dass nur funktionierende Branches in den Hauptzweig gemergt werden.
 
+**ERD Konzept**
+
+![{0DA5029C-E033-4E30-90E0-975E136EBE3D}](https://github.com/user-attachments/assets/c3316a1d-befe-4233-bc3b-a5b2a3787108)
+
 ---
 
 ### Implementierungsschritte
