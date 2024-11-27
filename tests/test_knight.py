@@ -10,6 +10,7 @@ class TestKnight(unittest.TestCase):
     def test_valid_knight_moves_should_return_true(self):
         self.assertTrue(self.white_knight.is_move_valid((0, 1), (2, 0), self.board))
         self.assertTrue(self.white_knight.is_move_valid((0, 1), (2, 2), self.board))
+        self.assertTrue(self.white_knight.is_move_valid((0, 1), (1, 3), self.board))
 
     def test_invalid_knight_moves_should_return_false(self):
         self.assertFalse(self.white_knight.is_move_valid((0, 1), (0, 3), self.board))

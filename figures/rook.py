@@ -4,9 +4,9 @@ class Rook(Figure):
     
     def __init__(self, color, position):
         super().__init__(color, position, "Turm")
+        self.has_moved = False
     
-    def is_move_valid(self, start_pos, end_pos, board):
-        
+    def is_move_valid(self, start_pos, end_pos, board, last_move=None):
         start_row, start_col = start_pos
         end_row, end_col = end_pos
         

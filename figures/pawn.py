@@ -5,55 +5,55 @@ class Pawn(Figure):
     def __init__(self, color, position):
         super().__init__(color, position, "Bauer")
         
-    def is_move_valid(self, start_pos, end_pos, board):
-        
+    def is_move_valid(self, start_pos, end_pos, board, last_move=None):
         start_row, start_col = start_pos
         end_row, end_col = end_pos
-        
-        #Regel: innerhalb Spielfeld
-        if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
-            return False
-        
-        #Regel: weißer Bauer
+
         if self.color == "white":
-            
-            #Bauer ein Feld ziehen
+            #Regel: ein Feld nach vorne
             if end_row == start_row - 1 and start_col == end_col and board[end_row][end_col] is None:
                 return True
-            
-            #Bauer zwei Felder ziehen
+
+            #Regel: zwei Felder nach vorne
             if start_row == 6 and end_row == start_row - 2 and start_col == end_col:
                 if board[start_row - 1][start_col] is None and board[end_row][end_col] is None:
                     return True
-                
-            #Bauer diagonal schlagen
-            if (
-                end_row == start_row - 1 and
-                abs(end_col - start_col) == 1 and
-                board[end_row][end_col] is not None and
-                board[end_row][end_col].color != self.color
-            ):
-                return True
+
             
-        #Regel: schwarzer Bauer
+            if end_row == start_row - 1 and abs(end_col - start_col) == 1:
+                #Diagonaler Zug
+                if board[end_row][end_col] is not None and board[end_row][end_col].color != self.color:
+                    return True
+
+                #En passant
+                if last_move and isinstance(last_move["figure"], Pawn):
+                    if (
+                        last_move["start_pos"][0] == last_move["end_pos"][0] - 2 and  
+                        last_move["end_pos"] == (start_row, end_col)
+                    ):
+                        return True
+
         if self.color == "black":
-            
-            #Bauer ein Feld ziehen
+            #Regel: ein Feld nach vorne
             if end_row == start_row + 1 and start_col == end_col and board[end_row][end_col] is None:
                 return True
             
-            #Bauer zwei Felder ziehen
+            #Regel: zwei Felder nach vorne
             if start_row == 1 and end_row == start_row + 2 and start_col == end_col:
                 if board[start_row + 1][start_col] is None and board[end_row][end_col] is None:
                     return True
-                
-            #Bauer diagonal schlagen
-            if (
-                end_row == start_row + 1 and
-                abs(end_col - start_col) == 1 and
-                board[end_row][end_col] is not None and
-                board[end_row][end_col].color != self.color
-            ):
-                return True
-        
+
+            if end_row == start_row + 1 and abs(end_col - start_col) == 1:
+                #Diagonaler Zug
+                if board[end_row][end_col] is not None and board[end_row][end_col].color != self.color:
+                    return True
+
+                #En passant
+                if last_move and isinstance(last_move["figure"], Pawn):
+                    if (
+                        last_move["start_pos"][0] == last_move["end_pos"][0] + 2 and  
+                        last_move["end_pos"] == (start_row, end_col)
+                    ):
+                        return True
+
         return False

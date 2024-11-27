@@ -1,5 +1,10 @@
 from chess_board import ChessBoard
 from figures.king import King
+from figures.pawn import Pawn
+from figures.queen import Queen
+from figures.rook import Rook
+from figures.knight import Knight
+from figures.bishop import Bishop
 from user import User
 
 class ChessGame:
@@ -7,6 +12,7 @@ class ChessGame:
         self.board = ChessBoard()
         self.board.setup_fields()
         self.current_player = "white"
+        self.last_move = None
         self.white_player = User(white_name, "white")
         self.black_player = User(black_name, "black")
 
@@ -29,23 +35,29 @@ class ChessGame:
         row = 8 - pos[0]
         column = columns[pos[1]]
         return f"{column}{row}"
+    
+    def get_king_position(self, player_color):
+        for row in range(8):
+            for col in range(8):
+                figure = self.board.fields[row][col]
+                if isinstance(figure, King) and figure.color == player_color:
+                    return (row, col)
+        return None 
 
     def is_king_in_check(self, current_player):
-        king_pos = None
+        king_pos = self.get_king_position(current_player)
+        if not king_pos:
+            return False, None
+
         attacking_figures = []
+
         for row in range(8):
-            for col in range(8): 
-                figure = self.board.fields[row][col]
-                if figure and isinstance(figure, King) and figure.color == current_player:
-                    king_pos = (row, col)
-                    break
-                
-        for row in range(8):
-            for col in range(8): 
+            for col in range(8):
                 figure = self.board.fields[row][col]
                 if figure and figure.color != current_player:
                     if figure.is_move_valid((row, col), king_pos, self.board.fields):
                         attacking_figures.append((figure, (row, col)))
+
         return len(attacking_figures) > 0, attacking_figures
 
     def is_king_in_checkmate(self, current_player):
@@ -147,11 +159,82 @@ class ChessGame:
                                 if not self.simulate_move_and_check(current_player, start_pos, end_pos):
                                     return False
         return True
+    
+    def promote_pawn(self, position, promotion_choice):
+        #aktuell nur mit Dame weil keine user eingabe
+        pawn = self.board.fields[position[0]][position[1]]
+        if not isinstance(pawn, Pawn):
+            raise ValueError("Nur Bauern sollten umgewandelt werden können.")
+        if promotion_choice == "Dame":
+            promoted_figure = Queen(pawn.color, position)
+        elif promotion_choice == "Turm":
+            promoted_figure = Rook(pawn.color, position)
+        elif promotion_choice == "Läufer":
+            promoted_figure = Bishop(pawn.color, position)
+        elif promotion_choice == "Springer":
+            promoted_figure = Knight(pawn.color, position)
+        else:
+            raise ValueError(f"Fehlerhaft Auswahl: {promotion_choice}")
+
+        promoted_figure.id = pawn.id
+
+        self.board.fields[position[0]][position[1]] = promoted_figure
+
+        move_notation = (
+            f"Bauer ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
+            f"zu {promotion_choice}"
+        )
+        self.get_current_player().record_move(move_notation)
+        return move_notation
+    
+    def handle_rochade(self, king, start_pos, end_pos):
+        if abs(start_pos[1] - end_pos[1]) != 2:
+            return False
+        #kurze oder lange Rochade
+        row = start_pos[0]
+        direction = 1 if end_pos[1] > start_pos[1] else -1 
+        rook_col = 7 if direction == 1 else 0
+        rook_target_col = 5 if direction == 1 else 3
+
+        rook = self.board.fields[row][rook_col]
+        if not isinstance(rook, Rook):
+            return False
+
+        if king.has_moved or rook.has_moved:
+            return False
+
+        positions_between = self.get_positions_between(start_pos, (row, rook_col))
+        for position in positions_between:
+            if self.board.fields[position[0]][position[1]] is not None:
+                return False
+
+        for col in range(start_pos[1], end_pos[1] + direction, direction):
+            temp_king_pos = (row, col)
+            if self.simulate_move_and_check(king.color, start_pos, temp_king_pos):
+                return False
+
+        self.board.fields[row][rook_col] = None
+        self.board.fields[row][rook_target_col] = rook
+        rook.position = (row, rook_target_col)
+
+        self.board.fields[start_pos[0]][start_pos[1]] = None
+        self.board.fields[end_pos[0]][end_pos[1]] = king
+        king.position = end_pos
+
+        move_notation = (
+            f"Rochade {'kurz' if direction == 1 else 'lang'}: "
+            f"King ({king.color}, UUID: {king.id}) and Rook ({rook.color}, UUID: {rook.id})"
+        )
+        self.get_current_player().record_move(move_notation)
+        return True
+
 
     def move_figure(self, start_pos, end_pos, figure_id=None):
+        if start_pos == end_pos:
+            return "Ungültiger Zug: nicht auf das gleiche Feld ziehen!"
         figure = self.board.fields[start_pos[0]][start_pos[1]]
         target_field = self.board.fields[end_pos[0]][end_pos[1]]
-        
+
         if figure is None:
             return "Du hast ein leeres Feld ausgewählt!"
         
@@ -161,54 +244,121 @@ class ChessGame:
         if figure.color != self.current_player:
             return f"Es ist {self.current_player}'s Zug!"
         
-        if not figure.is_move_valid(start_pos, end_pos, self.board.fields):
+        if isinstance(figure, King) and abs(start_pos[1] - end_pos[1]) == 2:
+            if self.handle_rochade(figure, start_pos, end_pos):
+                self.switch_player()
+                return f"Rochade erfolgreich von {start_pos} nach {end_pos}"
+            else:
+                return "Ungültiger Zug: Rochade nicht erlaubt"
+        
+        if not figure.is_move_valid(start_pos, end_pos, self.board.fields, self.last_move):
             return "Ungültiger Zug!"
         
         if self.simulate_move_and_check(self.current_player, start_pos, end_pos):
             return "ungültiger Zug! König im Schach!"
-        
-        if target_field is not None and target_field.color == figure.color:
+
+        if target_field and target_field.color == figure.color:
             return "Ungültiger Zug! Zielfeld ist durch eine eigene Figur blockiert."
         
-        if target_field is not None:
-            last_move = None
-            if self.current_player == "black" and self.white_player.move_history:
-                last_move = self.white_player.move_history[-1]
-            elif self.current_player == "white" and self.black_player.move_history:
-                last_move = self.black_player.move_history[-1]
+        id_validation_result = self.validate_target_id(target_field)
+        if id_validation_result:
+            return id_validation_result
 
+        en_passant_notation = self.handle_en_passant(figure, start_pos, end_pos, target_field)
+        if en_passant_notation:
+            return en_passant_notation
+
+        move_notation = self.generate_move_notation(figure, target_field, start_pos, end_pos)
+        self.execute_move(figure, start_pos, end_pos, move_notation)
+
+        if isinstance(figure, Pawn) and end_pos[0] in (0, 7):
+            promotion_choice = self.get_current_player().choose_promotion()
+            self.promote_pawn(end_pos, promotion_choice)
+
+        self.last_move = {
+            "figure": figure,
+            "start_pos": start_pos,
+            "end_pos": end_pos,
+            "two_square_pawn_move": isinstance(figure, Pawn) and abs(start_pos[0] - end_pos[0]) == 2,
+        }
+        self.switch_player()
+        return move_notation
+
+    def validate_target_id(self, target_field):
+        if target_field:
+            last_move = self.get_last_move_or_set_start(target_field)
             if last_move and "UUID:" in last_move:
-                try:
-                    uuid_start = last_move.find("UUID: ") + len("UUID: ")
-                    uuid_end = last_move.find(")", uuid_start)
-                    if uuid_start == -1 or uuid_end == -1:
-                        return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
-                    expected_target_uuid = last_move[uuid_start:uuid_end]
-                    if target_field.id != expected_target_uuid:
-                        return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
-                except ValueError:
-                    return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
+                uuid_start = last_move.find("UUID: ") + len("UUID: ")
+                uuid_end = last_move.find(")", uuid_start)
+                if uuid_start == -1 or uuid_end == -1:
+                    return "Fehler: UUID nicht gefunden!"
+                expected_target_uuid = last_move[uuid_start:uuid_end]
+                if target_field.id != expected_target_uuid:
+                    return "Fehler: UUID stimmen nicht überein!"
+        return None
 
+    def get_last_move_or_set_start(self, target_field):
+        last_move = None
+        if self.current_player == "black" and self.white_player.move_history:
+            last_move = self.white_player.move_history[-1]
+        elif self.current_player == "white" and self.black_player.move_history:
+            last_move = self.black_player.move_history[-1]
+
+        if not last_move or "UUID:" not in last_move:
+            start_pos = target_field.position
+            last_move = (
+                f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
+                f"auf {self.convert_to_coordinates(start_pos)}"
+            )
+        return last_move
+
+    def handle_en_passant(self, figure, start_pos, end_pos, target_field):
+        if isinstance(figure, Pawn) and target_field is None:
+            if abs(end_pos[1] - start_pos[1]) == 1: 
+                captured_pawn_row = start_pos[0] 
+                captured_pawn_col = end_pos[1]
+                captured_pawn = self.board.fields[captured_pawn_row][captured_pawn_col]
+                
+                if (
+                    isinstance(captured_pawn, Pawn)
+                    and captured_pawn.color != figure.color
+                    and self.last_move
+                    and self.last_move["figure"] == captured_pawn
+                    and self.last_move["two_square_pawn_move"]
+                ):
+                    self.board.fields[captured_pawn_row][captured_pawn_col] = None
+                    
+                    move_notation = (
+                        f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
+                        f"{captured_pawn.name} ({captured_pawn.color}, UUID: {captured_pawn.id}) "
+                        f"en passant von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
+                    )
+                    
+                    self.execute_move(figure, start_pos, end_pos, move_notation)
+                    return move_notation
+        return None
+
+    def generate_move_notation(self, figure, target_field, start_pos, end_pos):
         if target_field is None:
-            move_notation = (
+            return (
                 f"{figure.name} ({figure.color}, UUID: {figure.id}) "
                 f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
             )
         else:
-            move_notation = (
+            return (
                 f"{figure.name} ({figure.color}, UUID: {figure.id}) schlägt "
                 f"{target_field.name} ({target_field.color}, UUID: {target_field.id}) "
                 f"von {self.convert_to_coordinates(start_pos)} auf {self.convert_to_coordinates(end_pos)}"
             )
-        
+
+    def execute_move(self, figure, start_pos, end_pos, move_notation):
         self.board.fields[end_pos[0]][end_pos[1]] = figure
         self.board.fields[start_pos[0]][start_pos[1]] = None
         figure.position = end_pos
-        current_player = self.get_current_player()
-        current_player.record_move(move_notation)
-        self.switch_player()
-        return move_notation
+        self.get_current_player().record_move(move_notation)
+        figure.move_history.append(move_notation)
 
+    #Debugging Methoden
     def print_board(self):
         print(f"Am Zug: {self.current_player}")
         self.board.print_board()
