@@ -35,23 +35,29 @@ class ChessGame:
         row = 8 - pos[0]
         column = columns[pos[1]]
         return f"{column}{row}"
+    
+    def get_king_position(self, player_color):
+        for row in range(8):
+            for col in range(8):
+                figure = self.board.fields[row][col]
+                if isinstance(figure, King) and figure.color == player_color:
+                    return (row, col)
+        return None 
 
     def is_king_in_check(self, current_player):
-        king_pos = None
+        king_pos = self.get_king_position(current_player)
+        if not king_pos:
+            return False, None
+
         attacking_figures = []
+
         for row in range(8):
-            for col in range(8): 
-                figure = self.board.fields[row][col]
-                if figure and isinstance(figure, King) and figure.color == current_player:
-                    king_pos = (row, col)
-                    break
-                
-        for row in range(8):
-            for col in range(8): 
+            for col in range(8):
                 figure = self.board.fields[row][col]
                 if figure and figure.color != current_player:
                     if figure.is_move_valid((row, col), king_pos, self.board.fields):
                         attacking_figures.append((figure, (row, col)))
+
         return len(attacking_figures) > 0, attacking_figures
 
     def is_king_in_checkmate(self, current_player):
@@ -180,11 +186,52 @@ class ChessGame:
         )
         self.get_current_player().record_move(move_notation)
         return move_notation
+    
+    def handle_rochade(self, king, start_pos, end_pos):
+        if abs(start_pos[1] - end_pos[1]) != 2:
+            return False
+        #kurze oder lange Rochade
+        row = start_pos[0]
+        direction = 1 if end_pos[1] > start_pos[1] else -1 
+        rook_col = 7 if direction == 1 else 0
+        rook_target_col = 5 if direction == 1 else 3
+
+        rook = self.board.fields[row][rook_col]
+        if not isinstance(rook, Rook):
+            return False
+
+        if king.has_moved or rook.has_moved:
+            return False
+
+        positions_between = self.get_positions_between(start_pos, (row, rook_col))
+        for position in positions_between:
+            if self.board.fields[position[0]][position[1]] is not None:
+                return False
+
+        for col in range(start_pos[1], end_pos[1] + direction, direction):
+            temp_king_pos = (row, col)
+            if self.simulate_move_and_check(king.color, start_pos, temp_king_pos):
+                return False
+
+        self.board.fields[row][rook_col] = None
+        self.board.fields[row][rook_target_col] = rook
+        rook.position = (row, rook_target_col)
+
+        self.board.fields[start_pos[0]][start_pos[1]] = None
+        self.board.fields[end_pos[0]][end_pos[1]] = king
+        king.position = end_pos
+
+        move_notation = (
+            f"Rochade {'kurz' if direction == 1 else 'lang'}: "
+            f"King ({king.color}, UUID: {king.id}) and Rook ({rook.color}, UUID: {rook.id})"
+        )
+        self.get_current_player().record_move(move_notation)
+        return True
+
 
     def move_figure(self, start_pos, end_pos, figure_id=None):
         if start_pos == end_pos:
-            return "Ungültiger Zug: Start- und Zielposition dürfen nicht identisch sein!"
-
+            return "Ungültiger Zug: nicht auf das gleiche Feld ziehen!"
         figure = self.board.fields[start_pos[0]][start_pos[1]]
         target_field = self.board.fields[end_pos[0]][end_pos[1]]
 
@@ -197,6 +244,13 @@ class ChessGame:
         if figure.color != self.current_player:
             return f"Es ist {self.current_player}'s Zug!"
         
+        if isinstance(figure, King) and abs(start_pos[1] - end_pos[1]) == 2:
+            if self.handle_rochade(figure, start_pos, end_pos):
+                self.switch_player()
+                return f"Rochade erfolgreich von {start_pos} nach {end_pos}"
+            else:
+                return "Ungültiger Zug: Rochade nicht erlaubt"
+        
         if not figure.is_move_valid(start_pos, end_pos, self.board.fields, self.last_move):
             return "Ungültiger Zug!"
         
@@ -206,9 +260,9 @@ class ChessGame:
         if target_field and target_field.color == figure.color:
             return "Ungültiger Zug! Zielfeld ist durch eine eigene Figur blockiert."
         
-        uuid_validation_result = self.validate_target_field_uuid(target_field)
-        if uuid_validation_result:
-            return uuid_validation_result
+        id_validation_result = self.validate_target_id(target_field)
+        if id_validation_result:
+            return id_validation_result
 
         en_passant_notation = self.handle_en_passant(figure, start_pos, end_pos, target_field)
         if en_passant_notation:
@@ -230,20 +284,17 @@ class ChessGame:
         self.switch_player()
         return move_notation
 
-    def validate_target_field_uuid(self, target_field):
+    def validate_target_id(self, target_field):
         if target_field:
             last_move = self.get_last_move_or_set_start(target_field)
             if last_move and "UUID:" in last_move:
-                try:
-                    uuid_start = last_move.find("UUID: ") + len("UUID: ")
-                    uuid_end = last_move.find(")", uuid_start)
-                    if uuid_start == -1 or uuid_end == -1:
-                        return "Ungültiger Zug: Ziel-UUID fehlt oder ist unvollständig!"
-                    expected_target_uuid = last_move[uuid_start:uuid_end]
-                    if target_field.id != expected_target_uuid:
-                        return "Ungültiger Zug: Ziel-UUID stimmt nicht mit der Zughistorie überein!"
-                except ValueError:
-                    return "Ungültiger Zug: Fehler beim Verarbeiten der Ziel-UUID!"
+                uuid_start = last_move.find("UUID: ") + len("UUID: ")
+                uuid_end = last_move.find(")", uuid_start)
+                if uuid_start == -1 or uuid_end == -1:
+                    return "Fehler: UUID nicht gefunden!"
+                expected_target_uuid = last_move[uuid_start:uuid_end]
+                if target_field.id != expected_target_uuid:
+                    return "Fehler: UUID stimmen nicht überein!"
         return None
 
     def get_last_move_or_set_start(self, target_field):
@@ -307,6 +358,7 @@ class ChessGame:
         self.get_current_player().record_move(move_notation)
         figure.move_history.append(move_notation)
 
+    #Debugging Methoden
     def print_board(self):
         print(f"Am Zug: {self.current_player}")
         self.board.print_board()
