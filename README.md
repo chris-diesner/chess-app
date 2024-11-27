@@ -110,7 +110,14 @@ Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von 
 - **Testszenarien:**
     - Jedes Szenario, einschließlich gültiger und ungültiger Anwendungen dieser Regeln, wurde durch Tests abgesichert.
 
+---
 
+### Bekannte Fehler:
+
+- Im jetzigem Entwicklungsstand sind momentan alle Bedingungen **ohne** Error Handling geschrieben worden, was bei z.B. fehlerhaften Spielzügen zu einem vorzeitigen Abbruch des Programms führen würde. Sobald sich damit beschäftigt wurde, wird dies jedoch entsprechend überarbeitet.
+- Bei der Spezialregel "Bauernumwandlung" wird der Bauer momentan noch standartmäßig in eine Dame umgewandelt. Dies ist mit der (noch) fehlenden Benutzereingabe zu begründen.
+
+----
 
 
 ## Project goal
