@@ -1,4 +1,4 @@
-# Projektdokumentation
+# Projektbeschreibung
 
 ## Projektname
 Chess App
