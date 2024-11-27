@@ -105,6 +105,3 @@ Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von 
 
 - **Testszenarien:**
     - Jedes Szenario, einschließlich gültiger und ungültiger Anwendungen dieser Regeln, wurde durch Tests abgesichert.
-
----
-
