@@ -3,6 +3,10 @@
 ## Projektname
 Chess App
 
+English below
+
+---
+
 ## Projektziel
 Das Ziel ist die Entwicklung eines Schachspiels mit vollständiger Spiellogik, das sowohl die grundlegenden als auch die komplexeren Regeln des Spiels abbildet. Es soll bewusst auf die Verwendung von bestehenden Bibliotheken verzichtet werden, die Schachregeln und -abläufe bereits vorgeben.
 
@@ -105,3 +109,92 @@ Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von 
 
 - **Testszenarien:**
     - Jedes Szenario, einschließlich gültiger und ungültiger Anwendungen dieser Regeln, wurde durch Tests abgesichert.
+
+
+
+
+## Project goal
+The aim is to develop a chess game with complete game logic that maps both the basic and the more complex rules of the game. The aim is to deliberately avoid using existing libraries that already contain chess rules and sequences.
+
+---
+
+## Development steps
+
+### Conceptualization 
+Even though the development of the program logic is the primary focus of this project and essential end-to-end functionalities are not planned (for the time being), clear development stages were defined at the beginning according to the concept of **vertical slicing**. This structure enables focused and iterative development:
+
+1. **Basic playing field**
+    - Construction of the chessboard.
+    - Initialization of the piece positions.
+    - Display of the chessboard (optional console output).
+
+2. **Movement logic**
+    - Implementation of the movement rules for all pieces.
+    - Checking the validity of a move.
+    - Recognition of check, checkmate or draw.
+    - Storage and display of the move history.
+
+3 **Special rules**
+    - Implementation of special rules such as “castling”, “pawn conversion” and “en passant”.
+
+As no input/output for user interaction has been implemented to date, the development can only be traced via the unit tests.
+
+Right from the start, development was predominantly **test-driven**. This facilitates the implementation of the methods according to the chess rules and ensures that each extension remains precise and robust. The development was split across different branches to enable parallel work. In addition, **Continuous Integration (CI)** was set up to run all tests automatically and ensure that only working branches are merged into the main branch.
+
+Furthermore, the structure and methodology of each development step was considered in advance and outlined in ERD and UML diagrams. It should be noted that there were certain inconsistencies in the naming of methods and attributes ;) 
+
+---
+
+### Implementation steps
+
+#### **1. Basic board**
+The first stage of development focused on the basic logic of the chessboard:
+- **Modeling the board:** 
+    - The chessboard was implemented as a 2-dimensional array in which each square is referenced by its coordinates (`[row][column]`).
+    - Each field can either be empty or contain a chess piece.
+- **Initialization of the starting position:**
+    - Pieces such as pawns, bishops and rooks have been created as objects and positioned on the corresponding starting squares of the board.
+    - Each piece object contains attributes such as color (white or black), current position and specific movement logic.
+- Console output:**
+    - A simple representation of the chessboard has been implemented in the console to check the placement of the pieces and display the current game status.
+ 
+#### **2. Movement logic**
+The second phase comprised the implementation of the movement rules and the validation of moves:
+- **Figure movements:**
+    - Each piece was given its specific movement rules:
+        - The **pawn** can move forward and capture diagonally.
+        - The **Bishop** only moves diagonally without skipping pieces.
+        - The **tower** moves orthogonally, also without jumping over obstacles.
+        - The **queen** combines the movement rules of the rook and bishop.
+        - The **king** can only move one square in each direction.
+    - The movement rules have been implemented using special methods such as `is_move_valid` in the respective piece classes.
+- **Move validation:**
+    - A check is made before each move:
+        - **Pitch boundaries:** The move must not leave the chessboard.
+        - **Blockades:** Pieces may not jump over other pieces (except knights).
+        - **Target position:** The target square must either be empty or contain an opponent's piece.
+
+- **Check and checkmate detection:**
+    - The game logic has been extended to recognize situations in which the king is threatened.
+    - “Checkmate” is recognized when there are no more valid moves available to eliminate the threat.
+
+- **Test scenarios:**
+    - Unit tests have been created for each character, covering typical and complex game situations to ensure compliance with the movement rules.
+
+
+#### **3. Special rules**
+The third phase focused on the implementation and validation of special rules:
+- **Rochade:**
+    - Castling was implemented so that the king and a rook can be moved simultaneously if:
+        - Neither the king nor the rook have been moved before.
+        - There are no pieces between them.
+        - The king is not in check or is put in check by castling.
+- **Pawn conversion:**
+    - When a pawn reaches the last rank, the player is asked to convert it to any other piece (by default to a queen).
+- **En Passant:**
+    - This rule allows a pawn to capture an opponent's pawn that has advanced two squares in the previous move. To implement this:
+        - The move history has been extended to store the last move of a pawn.
+        - Before each move, a check is made to see whether “En Passant” is possible.
+
+- **Test scenarios:**
+    - Each scenario, including valid and invalid applications of these rules, has been validated by testing.
