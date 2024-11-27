@@ -31,6 +31,8 @@ Da bislang kein Input/Output für die User-Interaktion implementiert wurde, kann
 
 Von Beginn an wurde überwiegend **testgetrieben entwickelt**. Dies erleichtert die Implementierung der Methoden gemäß der Schachregeln und stellt sicher, dass jede Erweiterung präzise und robust bleibt. Die Entwicklung wurde auf verschiedene Branches aufgeteilt, um parallele Arbeiten zu ermöglichen. Zusätzlich wurde **Continuous Integration (CI)** eingerichtet, um alle Tests automatisch auszuführen und sicherzustellen, dass nur funktionierende Branches in den Hauptzweig gemergt werden.
 
+Außerdem wurde sich bereits im Vorfeld eines jeden Entwicklungsschritts Gedanken über Struktur und Methodik gemacht und dieses in ERD bzw. UML-Diagrammen skizziert. Es sei dazu gesagt, dass es dabei zu gewisse Inkonsistenzen bei der Benennung von Methoden und Atributen kam. ;) 
+
 **ERD Konzept**
 
 ![{0DA5029C-E033-4E30-90E0-975E136EBE3D}](https://github.com/user-attachments/assets/c3316a1d-befe-4233-bc3b-a5b2a3787108)
@@ -49,6 +51,11 @@ Der erste Entwicklungsabschnitt konzentrierte sich auf die grundlegende Logik de
     - Jedes Figurenobjekt enthält Attribute wie Farbe (weiß oder schwarz), aktuelle Position und spezifische Bewegungslogik.
 - **Konsolenausgabe:**
     - Eine einfache Darstellung des Schachbretts wurde in der Konsole implementiert, um die Platzierung der Figuren zu überprüfen und den aktuellen Spielstatus darzustellen.
+ 
+- **vereinfachte UML-Darstellung**
+
+![grafik](https://github.com/user-attachments/assets/9106faac-a809-4a1d-8851-d888122ded15)
+
 
 #### **2. Bewegungslogik**
 Die zweite Phase umfasste die Implementierung der Bewegungsregeln und die Validierung von Zügen:
@@ -65,11 +72,19 @@ Die zweite Phase umfasste die Implementierung der Bewegungsregeln und die Validi
         - **Spielfeldgrenzen:** Der Zug darf das Schachbrett nicht verlassen.
         - **Blockaden:** Figuren dürfen keine anderen Figuren überspringen (außer Springer).
         - **Zielposition:** Das Zielfeld muss entweder leer sein oder eine gegnerische Figur enthalten.
+     
+          ![grafik](https://github.com/user-attachments/assets/b3764f78-09a1-4ca8-bb3b-67c3a5931607)
+
+
 - **Schach- und Schachmatt-Erkennung:**
     - Die Spiellogik wurde erweitert, um Situationen zu erkennen, in denen der König bedroht ist.
     - „Schachmatt“ wird erkannt, wenn keine gültigen Züge mehr verfügbar sind, um die Bedrohung zu beseitigen.
+ 
+        ![grafik](https://github.com/user-attachments/assets/6d9e58d9-9c55-491e-8b3c-4919603a9539)
+
 - **Testszenarien:**
     - Für jede Figur wurden Unit Tests erstellt, die typische und komplexe Spielsituationen abdecken, um die Einhaltung der Bewegungsregeln sicherzustellen.
+
 
 #### **3. Spezialregeln**
 Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von Spezialregeln:
@@ -84,6 +99,10 @@ Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von 
     - Diese Regel erlaubt es einem Bauern, einen gegnerischen Bauern zu schlagen, der im vorherigen Zug zwei Felder vorgerückt ist. Um dies umzusetzen:
         - Die Zughistorie wurde erweitert, um den letzten Zug eines Bauern zu speichern.
         - Vor jedem Zug wird überprüft, ob „En Passant“ möglich ist.
+     
+          ![grafik](https://github.com/user-attachments/assets/45971df2-1b95-4320-8210-13b627c4e519)
+
+
 - **Testszenarien:**
     - Jedes Szenario, einschließlich gültiger und ungültiger Anwendungen dieser Regeln, wurde durch Tests abgesichert.
 
