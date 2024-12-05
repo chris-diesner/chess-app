@@ -10,7 +10,7 @@
     "python.testing.unittestEnabled": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true
+        "source.fixAll.eslint": "explicit"
     },
     "javascript.updateImportsOnFileMove.enabled": "always",
     "files.exclude": {
