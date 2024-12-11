@@ -54,14 +54,41 @@ class ChessGame:
                         self.screen.blit(self.images[char], (col * self.field, row * self.field))
  
     def run_game(self):
+        drag_figure = None
+        start_pos = None
+        end_pos = None
+        
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                    
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    row, col = mouse_y//self.field, mouse_x//self.field
+                    start_pos = (row, col)
+                    figure = self.board.fields[row][col]
+                    if figure and figure.color == self.current_player:
+                        drag_figure = self.images[figure.__class__.__name__[0].upper() if figure.color == "white" else figure.__class__.__name__[0].lower()]
+                
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    end_pos = mouse_y//self.field, mouse_x//self.field
+                    print(end_pos)
+                    drag_figure = None
+                    
+                    result = self.move_figure(start_pos, end_pos)
+                    print(result)
 
             self.screen.fill((0, 0, 0))
             self.draw_board()
             self.draw_figures()
+            
+            if drag_figure:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                rect = drag_figure.get_rect(center=(mouse_x, mouse_y))
+                self.screen.blit(drag_figure, rect)
+                
             pygame.display.flip()
             self.clock.tick(self.fps)
 
