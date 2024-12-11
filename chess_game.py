@@ -6,15 +6,66 @@ from figures.rook import Rook
 from figures.knight import Knight
 from figures.bishop import Bishop
 from user import User
+import pygame
 
 class ChessGame:
     def __init__(self, white_name="User 1", black_name="User 2"):
-        self.board = ChessBoard()
-        self.board.setup_fields()
-        self.current_player = "white"
-        self.last_move = None
+        self.board = ChessBoard() 
+        self.board.setup_fields() 
+        self.current_player = "white"  
         self.white_player = User(white_name, "white")
         self.black_player = User(black_name, "black")
+        self.last_move = None
+        self.running = True
+        self.width, self.height = 800, 800
+        self.field = self.width // 8
+        self.clock = pygame.time.Clock()
+        self.fps = 40
+        self.screen = None 
+        self.images = {}
+        self.build_board()
+        
+    def build_board(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.image_load()
+        
+    def image_load(self):
+        figure_to_img_loc = dict(r='br', n='bn', b='bb', q='bq', k='bk', p='bp',
+                                R='wr', N='wn', B='wb', Q='wq', K='wk', P='wp')
+        for char, img_path in figure_to_img_loc.items():
+            img = pygame.image.load(f'images/{img_path}.png')
+            self.images[char] = pygame.transform.smoothscale(img, (self.field, self.field))
+    
+    def draw_board(self):
+        for row in range(8):
+            for col in range(8):
+                color = '#DFBF93' if (row + col) % 2 == 0 else '#C5844E'
+                pygame.draw.rect(self.screen, color, 
+                                 (col * self.field, row * self.field, self.field, self.field))
+    
+    def draw_figures(self):
+        for row in range(8):
+            for col in range(8):
+                figure = self.board.fields[row][col]
+                if figure:
+                    char = figure.__class__.__name__[0].upper() if figure.color == "white" else figure.__class__.__name__[0].lower()
+                    if char in self.images:
+                        self.screen.blit(self.images[char], (col * self.field, row * self.field))
+ 
+    def run_game(self):
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            self.screen.fill((0, 0, 0))
+            self.draw_board()
+            self.draw_figures()
+            pygame.display.flip()
+            self.clock.tick(self.fps)
+
+        pygame.quit()
 
     def get_current_player(self):
         return self.white_player if self.current_player == "white" else self.black_player
