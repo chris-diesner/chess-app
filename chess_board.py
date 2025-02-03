@@ -28,6 +28,23 @@ class ChessBoard:
             self.fields[7][col] = figures[col]("white", (7, col))
             self.fields[0][col] = figures[col]("black", (0, col))
             
+    def get_board_state(self):
+        board_state = []
+        for row in range(8):
+            board_row = []
+            for col in range(8):
+                figure = self.fields[row][col]
+                if figure:
+                    board_row.append({
+                        "type": figure.name,
+                        "color": figure.color,
+                        "position": f"{chr(97 + col)}{8 - row}"  
+                    })
+                else:
+                    board_row.append(None)
+            board_state.append(board_row)
+        return board_state
+            
     def print_board(self):
         print("    a  b  c  d  e  f  g  h")  # Spaltenkoordinaten
         print("  +------------------------+")

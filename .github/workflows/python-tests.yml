@@ -3,44 +3,42 @@ name: Python CI
 on:
   push:
     branches:
-      - '*'  # Auf alle Branches reagieren
+      - "*"
   pull_request:
     branches:
-      - '*'  # Bei jedem Pull Request reagieren
+      - "*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # Schritt 1: Repository klonen
-    - name: Check out the repository
-      uses: actions/checkout@v3
+      - name: Check out the repository
+        uses: actions/checkout@v3
 
-    # Schritt 2: Python installieren
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-    # Schritt 3: PYTHONPATH setzen
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
-    # Schritt 4: Abhängigkeiten installieren
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
 
-    # Schritt 5: Tests mit unittest ausführen und debuggen
-    - name: Discover and run tests
-      run: |
-        echo "Discovered tests:"
-        python -m unittest discover -s tests -p "test_*.py" -v
+      - name: Discover and run unittest tests
+        run: |
+          echo "Discovered unittest tests:"
+          python -m unittest discover -s tests -p "test_*.py" -v
 
-    # Schritt 6: Direkte Testausführung (optional, wenn Discover fehlschlägt)
-    - name: Run specific test files
-      run: |
-        python -m unittest tests.test_chess_board
-        python -m unittest tests.test_pawn
+      - name: List all test files
+        run: |
+          ls -R tests/
+
+      - name: Run API tests with pytest
+        run: |
+          pytest tests/ --disable-warnings

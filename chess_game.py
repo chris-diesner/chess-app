@@ -6,6 +6,15 @@ from figures.rook import Rook
 from figures.knight import Knight
 from figures.bishop import Bishop
 from user import User
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+board = ChessBoard()
+
+@app.route('/api/board', methods=['GET'])
+
+def get_board():
+    return jsonify(board.get_board_state())
 
 class ChessGame:
     def __init__(self, white_name="User 1", black_name="User 2"):
