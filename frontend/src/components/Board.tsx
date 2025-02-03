@@ -1,6 +1,18 @@
 import React from 'react';
 import '../styles/Board.css';
 
+// Startpositionen für das Schachspiel (FEN-ähnlich)
+const initialBoard: (string | null)[][] = [
+  ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
+  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
+  ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'],
+];
+
 // Hilfsfunktion: Koordinaten generieren
 const generateBoard = () => {
   const rows = 'abcdefgh';
@@ -16,7 +28,7 @@ const generateBoard = () => {
 };
 
 const Board: React.FC = () => {
-  const boardSquares = generateBoard(); // Koordinaten und Felder erstellen
+  const boardSquares = generateBoard(); // Koordinaten generieren
 
   return (
     <div className="board-container">
@@ -32,31 +44,27 @@ const Board: React.FC = () => {
 
         {/* Zeilen + Schachfelder */}
         {[...Array(8)].map((_, rowIndex) => (
-          <>
+          <React.Fragment key={rowIndex}>
             {/* Zeilennummer links */}
-            <div key={`row-left-${8 - rowIndex}`} className="row-label">
-              {8 - rowIndex}
-            </div>
+            <div className="row-label">{8 - rowIndex}</div>
 
             {[...Array(8)].map((_, colIndex) => {
               const square = boardSquares[rowIndex * 8 + colIndex];
               const isBlack = (rowIndex + colIndex) % 2 === 1;
+              const piece = initialBoard[rowIndex][colIndex]; // Figur an dieser Position
 
               return (
-                <div
-                  key={square.square}
-                  className={`square ${isBlack ? 'black' : 'white'}`}
-                >
-                  {/* {square.square} (optional für Debugging) */}
+                <div key={square.square} className={`square ${isBlack ? 'black' : 'white'}`}>
+                  {piece && (
+                    <img src={`/figures/${piece}.png`} alt={piece} className="chess-piece" />
+                  )}
                 </div>
               );
             })}
 
             {/* Zeilennummer rechts */}
-            <div key={`row-right-${8 - rowIndex}`} className="row-label">
-              {8 - rowIndex}
-            </div>
-          </>
+            <div className="row-label">{8 - rowIndex}</div>
+          </React.Fragment>
         ))}
 
         {/* Spaltennamen unten */}
