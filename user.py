@@ -21,5 +21,5 @@ class User:
         return ", ".join(f"{piece.name} ({piece.color})" for piece in self.captured_figures)
     
     def choose_promotion(self):
-        #Dame vor definiert bis user eingabe kommt
-        return "Dame"
+        #queen vor definiert bis user eingabe kommt
+        return "queen"

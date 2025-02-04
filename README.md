@@ -29,7 +29,7 @@ Auch wenn in diesem Projekt primär die Entwicklung der Programmlogik im Vorderg
     - Speicherung und Anzeige der Zughistorie.
 
 3. **Spezialregeln**
-    - Implementierung spezieller Regeln wie „Rochade“, "Bauernumwandlung" und „En Passant“.
+    - Implementierung spezieller Regeln wie „Rochade“, "pawnnumwandlung" und „En Passant“.
 
 Da bislang kein Input/Output für die User-Interaktion implementiert wurde, kann die Entwicklung bisher auch nur über die Unit Tests nachvollzogen werden.
 
@@ -51,7 +51,7 @@ Der erste Entwicklungsabschnitt konzentrierte sich auf die grundlegende Logik de
     - Das Schachbrett wurde als 2-dimensionales Array implementiert, in dem jedes Feld durch seine Koordinaten (`[Zeile][Spalte]`) referenziert wird.
     - Jedes Feld kann entweder leer sein oder eine Schachfigur enthalten.
 - **Initialisierung der Startaufstellung:**
-    - Figuren wie Bauern, Läufer und Türme wurden als Objekte erstellt und auf den entsprechenden Startfeldern des Bretts positioniert.
+    - Figuren wie pawnn, bishop und Türme wurden als Objekte erstellt und auf den entsprechenden Startfeldern des Bretts positioniert.
     - Jedes Figurenobjekt enthält Attribute wie Farbe (weiß oder schwarz), aktuelle Position und spezifische Bewegungslogik.
 - **Konsolenausgabe:**
     - Eine einfache Darstellung des Schachbretts wurde in der Konsole implementiert, um die Platzierung der Figuren zu überprüfen und den aktuellen Spielstatus darzustellen.
@@ -65,23 +65,23 @@ Der erste Entwicklungsabschnitt konzentrierte sich auf die grundlegende Logik de
 Die zweite Phase umfasste die Implementierung der Bewegungsregeln und die Validierung von Zügen:
 - **Figurenbewegungen:**
     - Jede Figur erhielt ihre spezifischen Bewegungsregeln:
-        - Der **Bauer** kann sich nach vorne bewegen und diagonal schlagen.
-        - Der **Läufer** bewegt sich nur diagonal, ohne Figuren zu überspringen.
-        - Der **Turm** bewegt sich orthogonal, ebenfalls ohne Hindernisse zu überspringen.
-        - Die **Dame** kombiniert die Bewegungsregeln von Turm und Läufer.
-        - Der **König** kann sich nur ein Feld in jede Richtung bewegen.
+        - Der **pawn** kann sich nach vorne bewegen und diagonal schlagen.
+        - Der **bishop** bewegt sich nur diagonal, ohne Figuren zu überspringen.
+        - Der **rook** bewegt sich orthogonal, ebenfalls ohne Hindernisse zu überspringen.
+        - Die **queen** kombiniert die Bewegungsregeln von rook und bishop.
+        - Der **king** kann sich nur ein Feld in jede Richtung bewegen.
     - Die Bewegungsregeln wurden durch eigene Methoden wie `is_move_valid` in den jeweiligen Figurenklassen umgesetzt.
 - **Validierung der Züge:**
     - Vor jedem Zug wird überprüft:
         - **Spielfeldgrenzen:** Der Zug darf das Schachbrett nicht verlassen.
-        - **Blockaden:** Figuren dürfen keine anderen Figuren überspringen (außer Springer).
+        - **Blockaden:** Figuren dürfen keine anderen Figuren überspringen (außer knight).
         - **Zielposition:** Das Zielfeld muss entweder leer sein oder eine gegnerische Figur enthalten.
      
           ![grafik](https://github.com/user-attachments/assets/b3764f78-09a1-4ca8-bb3b-67c3a5931607)
 
 
 - **Schach- und Schachmatt-Erkennung:**
-    - Die Spiellogik wurde erweitert, um Situationen zu erkennen, in denen der König bedroht ist.
+    - Die Spiellogik wurde erweitert, um Situationen zu erkennen, in denen der king bedroht ist.
     - „Schachmatt“ wird erkannt, wenn keine gültigen Züge mehr verfügbar sind, um die Bedrohung zu beseitigen.
  
         ![grafik](https://github.com/user-attachments/assets/6d9e58d9-9c55-491e-8b3c-4919603a9539)
@@ -93,15 +93,15 @@ Die zweite Phase umfasste die Implementierung der Bewegungsregeln und die Validi
 #### **3. Spezialregeln**
 Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von Spezialregeln:
 - **Rochade:**
-    - Die Rochade wurde implementiert, sodass der König und ein Turm gleichzeitig bewegt werden können, wenn:
-        - Weder der König noch der Turm zuvor bewegt wurden.
+    - Die Rochade wurde implementiert, sodass der king und ein rook gleichzeitig bewegt werden können, wenn:
+        - Weder der king noch der rook zuvor bewegt wurden.
         - Keine Figuren zwischen ihnen stehen.
-        - Der König nicht im Schach steht oder durch die Rochade ins Schach gerät.
-- **Bauernumwandlung:**
-    - Wenn ein Bauer die letzte Reihe erreicht, wird der Spieler aufgefordert, ihn in eine beliebige andere Figur umzuwandeln (standardmäßig in eine Dame).
+        - Der king nicht im Schach steht oder durch die Rochade ins Schach gerät.
+- **pawnnumwandlung:**
+    - Wenn ein pawn die letzte Reihe erreicht, wird der Spieler aufgefordert, ihn in eine beliebige andere Figur umzuwandeln (standardmäßig in eine queen).
 - **En Passant:**
-    - Diese Regel erlaubt es einem Bauern, einen gegnerischen Bauern zu schlagen, der im vorherigen Zug zwei Felder vorgerückt ist. Um dies umzusetzen:
-        - Die Zughistorie wurde erweitert, um den letzten Zug eines Bauern zu speichern.
+    - Diese Regel erlaubt es einem pawnn, einen gegnerischen pawnn zu schlagen, der im vorherigen Zug zwei Felder vorgerückt ist. Um dies umzusetzen:
+        - Die Zughistorie wurde erweitert, um den letzten Zug eines pawnn zu speichern.
         - Vor jedem Zug wird überprüft, ob „En Passant“ möglich ist.
      
           ![grafik](https://github.com/user-attachments/assets/45971df2-1b95-4320-8210-13b627c4e519)
@@ -115,7 +115,7 @@ Die dritte Phase konzentrierte sich auf die Implementierung und Validierung von 
 ### Bekannte Fehler:
 
 - Im jetzigem Entwicklungsstand sind momentan alle Bedingungen **ohne** Error Handling geschrieben worden, was bei z.B. fehlerhaften Spielzügen zu einem vorzeitigen Abbruch des Programms führen würde. Sobald sich damit beschäftigt wurde, wird dies jedoch entsprechend überarbeitet.
-- Bei der Spezialregel "Bauernumwandlung" wird der Bauer momentan noch standartmäßig in eine Dame umgewandelt. Dies ist mit der (noch) fehlenden Benutzereingabe zu begründen.
+- Bei der Spezialregel "pawnnumwandlung" wird der pawn momentan noch standartmäßig in eine queen umgewandelt. Dies ist mit der (noch) fehlenden Benutzereingabe zu begründen.
 
 ----
 

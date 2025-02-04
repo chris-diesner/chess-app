@@ -6,6 +6,17 @@ from figures.rook import Rook
 from figures.knight import Knight
 from figures.bishop import Bishop
 from user import User
+from flask import Flask, jsonify
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+board = ChessBoard()
+
+@app.route('/api/board', methods=['GET'])
+
+def get_board():
+    return jsonify(board.get_board_state())
 
 class ChessGame:
     def __init__(self, white_name="User 1", black_name="User 2"):
@@ -161,17 +172,17 @@ class ChessGame:
         return True
     
     def promote_pawn(self, position, promotion_choice):
-        #aktuell nur mit Dame weil keine user eingabe
+        #aktuell nur mit queen weil keine user eingabe
         pawn = self.board.fields[position[0]][position[1]]
         if not isinstance(pawn, Pawn):
-            raise ValueError("Nur Bauern sollten umgewandelt werden können.")
-        if promotion_choice == "Dame":
+            raise ValueError("Nur pawnn sollten umgewandelt werden können.")
+        if promotion_choice == "queen":
             promoted_figure = Queen(pawn.color, position)
-        elif promotion_choice == "Turm":
+        elif promotion_choice == "rook":
             promoted_figure = Rook(pawn.color, position)
-        elif promotion_choice == "Läufer":
+        elif promotion_choice == "bishop":
             promoted_figure = Bishop(pawn.color, position)
-        elif promotion_choice == "Springer":
+        elif promotion_choice == "knight":
             promoted_figure = Knight(pawn.color, position)
         else:
             raise ValueError(f"Fehlerhaft Auswahl: {promotion_choice}")
@@ -181,7 +192,7 @@ class ChessGame:
         self.board.fields[position[0]][position[1]] = promoted_figure
 
         move_notation = (
-            f"Bauer ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
+            f"pawn ({pawn.color}, UUID: {pawn.id}) auf {self.convert_to_coordinates(position)} "
             f"zu {promotion_choice}"
         )
         self.get_current_player().record_move(move_notation)
@@ -255,7 +266,7 @@ class ChessGame:
             return "Ungültiger Zug!"
         
         if self.simulate_move_and_check(self.current_player, start_pos, end_pos):
-            return "ungültiger Zug! König im Schach!"
+            return "ungültiger Zug! king im Schach!"
 
         if target_field and target_field.color == figure.color:
             return "Ungültiger Zug! Zielfeld ist durch eine eigene Figur blockiert."

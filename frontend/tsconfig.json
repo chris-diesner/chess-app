@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "jsx": "react-jsx", // Wichtig: Unterstützt React 17+ mit der neuen JSX-Transform
-    "target": "ES5",
+    "target": "ES2015",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,

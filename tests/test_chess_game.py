@@ -124,12 +124,12 @@ class TestChessGame(unittest.TestCase):
         
     def test_valid_move_should_return_string_movement_notation(self):
         result = self.game.move_figure((6, 0), (4, 0))
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
         result = self.game.move_figure((6, 0), (4, 0))
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
         self.assertIsNone(self.game.board.fields[6][0])
         self.assertIsInstance(self.game.board.fields[4][0], Pawn)
@@ -152,7 +152,7 @@ class TestChessGame(unittest.TestCase):
         self.game.board.fields[1][0] = King("white", (1, 0))
         self.game.board.fields[0][7] = Rook("black", (0, 7))
         result = self.game.move_figure((1, 0), (0, 0))
-        self.assertEqual(result, "ungültiger Zug! König im Schach!")
+        self.assertEqual(result, "ungültiger Zug! king im Schach!")
         
     def test_is_stalemate_should_return_true_if_no_legal_move_possible(self):
         self.game.board.fields = [[None for _ in range(8)] for _ in range(8)]
@@ -209,17 +209,17 @@ class TestChessGame(unittest.TestCase):
     def test_move_with_correct_uuid_should_should_return_string_valid_move(self):
         valid_uuid = self.game.board.fields[6][0].id
         result = self.game.move_figure((6, 0), (4, 0), valid_uuid)
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
         
     def test_valid_move_should_return_string_movement_notation(self):
         result = self.game.move_figure((6, 0), (4, 0))
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
 
     def test_valid_move_updates_board_should_return_string_updated_board(self):
         result = self.game.move_figure((6, 0), (4, 0))
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
         self.assertIsNone(self.game.board.fields[6][0]) 
         self.assertIsInstance(self.game.board.fields[4][0], Pawn) 
@@ -231,20 +231,20 @@ class TestChessGame(unittest.TestCase):
         self.game.board.fields[7][7] = Rook("black", (7, 7))
         attacking_pawn = self.game.board.fields[7][0] = Rook("white", (7, 0))
         result = self.game.move_figure((7, 0), (7, 7), attacking_pawn.id)
-        self.assertTrue(result.startswith("Turm (white"))
-        self.assertIn("schlägt Turm (black", result)
+        self.assertTrue(result.startswith("rook (white"))
+        self.assertIn("schlägt rook (black", result)
         self.assertIsNone(self.game.board.fields[7][0]) 
         self.assertIsInstance(self.game.board.fields[7][7], Rook)
         self.assertEqual(self.game.board.fields[7][7].color, "white")
         white_moves = self.game.white_player.move_history
         self.assertEqual(len(white_moves), 1)
-        self.assertIn("schlägt Turm (black", white_moves[0])
+        self.assertIn("schlägt rook (black", white_moves[0])
         self.assertIn(attacking_pawn.id, white_moves[0])
 
     def test_move_with_correct_uuid_should_return_string_valid_move(self):
         valid_uuid = self.game.board.fields[6][0].id
         result = self.game.move_figure((6, 0), (4, 0), valid_uuid)
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von A2 auf A4", result)
 
     def test_move_history_should_return_list_move_history(self):
@@ -288,7 +288,7 @@ class TestChessGame(unittest.TestCase):
         #Zug 4: schwarz d7 -> d5
         self.game.move_figure((1, 3), (3, 3))
         result = self.game.move_figure((3, 4), (2, 3))
-        self.assertTrue(result.startswith("Bauer (white"))
+        self.assertTrue(result.startswith("pawn (white"))
         self.assertIn("von E5 auf D6", result)
         self.assertIsNone(self.game.board.fields[3][3])
         self.assertIsInstance(self.game.board.fields[2][3], Pawn)
@@ -306,7 +306,7 @@ class TestChessGame(unittest.TestCase):
         #Zug 5: weiß e2c2 -> c4
         self.game.move_figure((6, 2), (4, 2))
         result = self.game.move_figure((4, 1), (5, 2))
-        self.assertTrue(result.startswith("Bauer (black"))
+        self.assertTrue(result.startswith("pawn (black"))
         self.assertIn("von B4 auf C3", result)
         self.assertIsNone(self.game.board.fields[4][2])
         self.assertIsInstance(self.game.board.fields[5][2], Pawn)
@@ -337,7 +337,7 @@ class TestChessGame(unittest.TestCase):
         
         self.assertIsInstance(self.game.board.fields[0][3], Queen)
         last_move = self.game.white_player.move_history[-1]
-        self.assertIn("Dame", last_move)
+        self.assertIn("queen", last_move)
         result = self.game.is_king_in_check("black")
         self.assertTrue(result)
         result = self.game.move_figure((1, 6), (0, 5))

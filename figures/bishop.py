@@ -3,7 +3,7 @@ from figures.figure import Figure
 class Bishop(Figure):
     
     def __init__(self, color, position):
-        super().__init__(color, position, "Läufer")
+        super().__init__(color, position, "bishop")
     
     def is_move_valid(self, start_pos, end_pos, board, last_move=None):
         start_row, start_col = start_pos
