@@ -7,8 +7,10 @@ from figures.knight import Knight
 from figures.bishop import Bishop
 from user import User
 from flask import Flask, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 board = ChessBoard()
 
 @app.route('/api/board', methods=['GET'])

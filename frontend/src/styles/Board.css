@@ -1,76 +1,31 @@
-/* Gesamtcontainer für das Schachbrett */
 .board-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  margin: 20px;
+  align-items: center;
+  margin-top: 20px;
 }
 
-/* Schachbrett mit Koordinaten */
 .chessboard {
   display: grid;
-  grid-template-columns: 40px repeat(8, 80px); /* Erste Spalte für Reihen-Beschriftung */
-  grid-template-rows: repeat(9, 80px); /* Erste Zeile für Spalten-Beschriftung */
-  border: 3px solid black;
-  background-color: #222;
-  position: relative;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 640px;
+  height: 640px;
+  border: 2px solid black;
 }
 
-/* Jedes einzelne Feld */
 .square {
-  width: 80px;
-  height: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: relative;
+  width: 80px;
+  height: 80px;
 }
 
-/* Schwarz-weiße Felder */
 .square.white {
   background-color: #eeeed2;
 }
 
 .square.black {
   background-color: #769656;
-}
-
-/* Figuren-Styling */
-.figure {
-  width: 90%;
-  height: 90%;
-  object-fit: contain;
-  cursor: grab;
-  position: relative;
-}
-
-/* Dragging-Effekt */
-.figure:active {
-  cursor: grabbing;
-  opacity: 0.5;
-}
-
-/* Spalten-Beschriftung (a-h) */
-.column-label {
-  grid-row: 10; /* Direkt unter das Brett */
-  font-size: 16px;
-  font-weight: bold;
-  color: #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: -5px;
-}
-
-/* Reihen-Beschriftung (1-8) */
-.row-label {
-  grid-column: 1; /* Direkt links vom Brett */
-  font-size: 16px;
-  font-weight: bold;
-  color: #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: -5px;
 }

@@ -5,7 +5,7 @@ import Square from "./Square";
 import Figure from "./Figure"; // Import für Figuren-Komponente
 import "../styles/Board.css"; // Falls Styling vorhanden ist
 
-const API_URL = "http://localhost:3000/api/board"; // API-URL anpassen!
+const API_URL = "http://localhost:5000/api/board"; // API-URL anpassen!
 
 const Board: React.FC = () => {
   const [boardState, setBoardState] = useState<(null | { type: string; color: string; position: string })[][]>([]);
@@ -13,7 +13,10 @@ const Board: React.FC = () => {
   useEffect(() => {
     fetch(API_URL)
       .then((res) => res.json())
-      .then((data) => setBoardState(data))
+      .then((data) => {
+        console.log("DEBUG: API Response", data); // <-- Fügt diese Zeile hinzu
+        setBoardState(data);
+      })
       .catch((err) => console.error("Fehler beim Laden des Bretts:", err));
   }, []);
 
