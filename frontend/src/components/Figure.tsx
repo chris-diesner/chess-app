@@ -1,24 +1,14 @@
-import React from 'react';
-import { useDrag } from 'react-dnd';
+import React from "react";
 
-const Figure: React.FC<{ figure: string; position: string }> = ({ figure, position }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'FIGURE',
-    item: { figure, position },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
+interface FigureProps {
+  type: string;
+  color: string;
+}
 
-  return (
-    <img
-      ref={drag}
-      src={`/figures/${figure}.png`}
-      alt={figure}
-      className="chess-piece"
-      style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}
-    />
-  );
+const Figure: React.FC<FigureProps> = ({ type, color }) => {
+  const imageSrc = `/figures/${color}_${type}.png`; 
+
+  return <img src={imageSrc} alt={`${color} ${type}`} className="figure" />;
 };
 
 export default Figure;

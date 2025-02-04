@@ -3,7 +3,7 @@ from figures.figure import Figure
 class King(Figure):
     
     def __init__(self, color, position):
-        super().__init__(color, position, "König")
+        super().__init__(color, position, "king")
         self.has_moved = False
         
     def is_move_valid(self, start_pos, end_pos, board, last_move=None):

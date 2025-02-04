@@ -1,64 +1,38 @@
-import React, { useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import '../styles/Board.css';
-import Square from './Square';
+import React, { useState, useEffect } from "react";
+import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import Square from "./Square";
+import Figure from "./Figure"; // Import für Figuren-Komponente
+import "../styles/Board.css"; // Falls Styling vorhanden ist
 
-const initialBoard: (string | null)[][] = [
-  ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
-  ['bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP', 'bP'],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  [null, null, null, null, null, null, null, null],
-  ['wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP', 'wP'],
-  ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'],
-];
+const API_URL = "http://localhost:3000/api/board"; // API-URL anpassen!
 
 const Board: React.FC = () => {
-  const [boardState, setBoardState] = useState(initialBoard);
+  const [boardState, setBoardState] = useState<(null | { type: string; color: string; position: string })[][]>([]);
 
-  const moveFigure = (from: string, to: string) => {
-    console.log(`Zug von ${from} nach ${to}`);
-
-    const fromRow = 8 - parseInt(from[1]);
-    const fromCol = from.charCodeAt(0) - 'a'.charCodeAt(0);
-    const toRow = 8 - parseInt(to[1]);
-    const toCol = to.charCodeAt(0) - 'a'.charCodeAt(0);
-
-    const newBoard = boardState.map((row) => [...row]);
-    newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
-    newBoard[fromRow][fromCol] = null;
-
-    setBoardState(newBoard);
-  };
+  useEffect(() => {
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => setBoardState(data))
+      .catch((err) => console.error("Fehler beim Laden des Bretts:", err));
+  }, []);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="board-container">
         <div className="chessboard">
-          {/* Spaltennamen oben */}
-          <div className="board-margin"></div>
-          {[...'abcdefgh'].map((col, index) => (
-            <div key={`col-top-${col}`} className="column-label" style={{ gridColumn: index + 2, gridRow: 10 }}>
-              {col}
-            </div>
-          ))}
-
-          {/* Zeilen + Schachfelder */}
           {[...Array(8)].map((_, rowIndex) => (
             <React.Fragment key={rowIndex}>
-              {/* Zeilennummer links */}
-              <div className="row-label" style={{ gridRow: rowIndex + 1 }}>
-                {8 - rowIndex}
-              </div>
-
               {[...Array(8)].map((_, colIndex) => {
                 const position = `${String.fromCharCode(97 + colIndex)}${8 - rowIndex}`;
                 const isBlack = (rowIndex + colIndex) % 2 === 1;
-                const figure = boardState[rowIndex][colIndex];
+                const figure = boardState[rowIndex]?.[colIndex] ?? null;
 
-                return <Square key={position} isBlack={isBlack} position={position} figure={figure} moveFigure={moveFigure} />;
+                return (
+                  <Square key={position} isBlack={isBlack} position={position}>
+                    {figure && <Figure type={figure.type} color={figure.color} />}
+                  </Square>
+                );
               })}
             </React.Fragment>
           ))}

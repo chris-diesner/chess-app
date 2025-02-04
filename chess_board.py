@@ -17,7 +17,7 @@ class ChessBoard:
         return row, col
         
     def setup_fields(self):
-        #Bauern aufstellen
+        #pawnn aufstellen
         for col in range(8):
             self.fields[6][col] = Pawn("white", (6, col))
             self.fields[1][col] = Pawn("black", (1, col))

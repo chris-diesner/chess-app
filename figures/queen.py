@@ -3,7 +3,7 @@ from figures.figure import Figure
 class Queen(Figure):
     
     def __init__(self, color, position):
-        super().__init__(color, position, "Dame")
+        super().__init__(color, position, "queen")
     
     def is_move_valid(self, start_pos, end_pos, board, last_move=None):
         start_row, start_col = start_pos
@@ -13,7 +13,7 @@ class Queen(Figure):
         if not (0 <= start_row < 8 and 0 <= start_col < 8 and 0 <= end_row < 8 and 0 <= end_col < 8):
             return False
 
-        #Regel: Dame bewegt sich horizontal, vertikal oder diagonal
+        #Regel: queen bewegt sich horizontal, vertikal oder diagonal
         if start_row == end_row:
             step_row, step_col = 0, 1 if end_col > start_col else -1
         elif start_col == end_col:
@@ -24,7 +24,7 @@ class Queen(Figure):
         else:
             return False 
 
-        #Regel: Dame darf keine Figuren überspringen
+        #Regel: queen darf keine Figuren überspringen
         row, col = start_row + step_row, start_col + step_col
         while (row, col) != (end_row, end_col):
             if board[row][col] is not None:

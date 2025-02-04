@@ -1,25 +1,15 @@
-import React from 'react';
-import { useDrop } from 'react-dnd';
-import Figure from './Figure';
+import React, { ReactNode } from "react";
 
-const Square: React.FC<{ isBlack: boolean; position: string; figure: string | null; moveFigure: (from: string, to: string) => void }> = ({
-  isBlack,
-  position,
-  figure,
-  moveFigure,
-}) => {
-    const [, drop] = useDrop(() => ({
-        accept: 'FIGURE',
-        drop: (item: { figure: string; position: string }) => {
-          console.log(`Figur ${item.figure} von ${item.position} nach ${position} gezogen`);
-          moveFigure(item.position, position);
-        },
-      }));
-      
+interface SquareProps {
+  isBlack: boolean;
+  position: string;
+  children?: ReactNode;
+}
 
+const Square: React.FC<SquareProps> = ({ isBlack, position, children }) => {
   return (
-    <div ref={drop} className={`square ${isBlack ? 'black' : 'white'}`}>
-      {figure && <Figure figure={figure} position={position} />}
+    <div className={`square ${isBlack ? "black" : "white"}`} data-position={position}>
+      {children}
     </div>
   );
 };

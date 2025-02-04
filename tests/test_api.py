@@ -11,6 +11,8 @@ def test_get_board_should_return_200OK_and_true_for_some_figures(client):
     
     assert response.status_code == 200
     data = response.get_json()
+    print(f"DEBUG: result = {response}")
+
     
     assert len(data) == 8
     assert len(data[0]) == 8
@@ -19,6 +21,6 @@ def test_get_board_should_return_200OK_and_true_for_some_figures(client):
     assert data[0][0]['color'] == 'black'
     assert data[0][0]['position'] == 'a8'
     
-    assert data[6][4]["type"] == "Bauer"
+    assert data[6][4]["type"] == "pawn"
     assert data[6][4]["color"] == "white"
     assert data[6][4]["position"] == "e2"
