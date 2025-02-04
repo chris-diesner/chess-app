@@ -8,6 +8,7 @@ from figures.bishop import Bishop
 from user import User
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import uuid
 
 app = Flask(__name__)
 CORS(app)
@@ -21,21 +22,24 @@ def get_board():
 def api_move_figure():
     data = request.get_json()
     
+    game_id = data.get("gameId")
     figure_id = data.get("figureId")
     to_position = data.get("toPosition")
 
-    if not figure_id or not to_position:
+    if not game_id or not figure_id or not to_position:
         return jsonify({"error": "Fehlende Parameter"}), 400
 
-    # Aktuelles Spiel-Objekt `game` nutzen
-    global game  
+    if game_id not in active_games:
+        return jsonify({"error": "Spiel existiert nicht"}), 404
 
-    # Finde die Startposition der Figur anhand der UUID
+    game = active_games[game_id]
+
+    # Finde die Figur anhand der UUID
     from_pos = None
     for row in range(8):
         for col in range(8):
-            figure = game.board.fields[row][col]
-            if figure and figure.id == figure_id:
+            piece = game.board.fields[row][col]
+            if piece and piece.id == figure_id:
                 from_pos = (row, col)
                 break
         if from_pos:
@@ -44,11 +48,11 @@ def api_move_figure():
     if not from_pos:
         return jsonify({"error": "Figur nicht gefunden"}), 404
 
-    # Zielposition aus Notation umwandeln ("e4" → (4,4))
+    # Zielposition umwandeln (z. B. "e4" → (4,4))
     col_map = {letter: i for i, letter in enumerate("abcdefgh")}
     to_pos = (8 - int(to_position[1]), col_map[to_position[0]])
 
-    # **Jetzt korrekt `game.move_figure()` verwenden**
+    # Figur bewegen
     move_result = game.move_figure(from_pos, to_pos, figure_id)
 
     if "Ungültiger Zug" in move_result:
