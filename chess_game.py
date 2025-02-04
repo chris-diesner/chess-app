@@ -6,7 +6,7 @@ from figures.rook import Rook
 from figures.knight import Knight
 from figures.bishop import Bishop
 from user import User
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -14,9 +14,47 @@ CORS(app)
 board = ChessBoard()
 
 @app.route('/api/board', methods=['GET'])
-
 def get_board():
     return jsonify(board.get_board_state())
+
+@app.route("/api/move", methods=["POST"])
+def api_move_figure():
+    data = request.get_json()
+    
+    figure_id = data.get("figureId")
+    to_position = data.get("toPosition")
+
+    if not figure_id or not to_position:
+        return jsonify({"error": "Fehlende Parameter"}), 400
+
+    # Aktuelles Spiel-Objekt `game` nutzen
+    global game  
+
+    # Finde die Startposition der Figur anhand der UUID
+    from_pos = None
+    for row in range(8):
+        for col in range(8):
+            figure = game.board.fields[row][col]
+            if figure and figure.id == figure_id:
+                from_pos = (row, col)
+                break
+        if from_pos:
+            break
+
+    if not from_pos:
+        return jsonify({"error": "Figur nicht gefunden"}), 404
+
+    # Zielposition aus Notation umwandeln ("e4" → (4,4))
+    col_map = {letter: i for i, letter in enumerate("abcdefgh")}
+    to_pos = (8 - int(to_position[1]), col_map[to_position[0]])
+
+    # **Jetzt korrekt `game.move_figure()` verwenden**
+    move_result = game.move_figure(from_pos, to_pos, figure_id)
+
+    if "Ungültiger Zug" in move_result:
+        return jsonify({"error": move_result}), 400
+
+    return jsonify({"message": "Zug erfolgreich", "board": game.get_board_state()})
 
 class ChessGame:
     def __init__(self, white_name="User 1", black_name="User 2"):
