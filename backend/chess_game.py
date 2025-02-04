@@ -1,22 +1,64 @@
-from chess_board import ChessBoard
-from figures.king import King
-from figures.pawn import Pawn
-from figures.queen import Queen
-from figures.rook import Rook
-from figures.knight import Knight
-from figures.bishop import Bishop
-from user import User
-from flask import Flask, jsonify
+from backend.chess_board import ChessBoard
+from backend.figures.king import King
+from backend.figures.pawn import Pawn
+from backend.figures.queen import Queen
+from backend.figures.rook import Rook
+from backend.figures.knight import Knight
+from backend.figures.bishop import Bishop
+from backend.user import User
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+import uuid
 
 app = Flask(__name__)
 CORS(app)
 board = ChessBoard()
 
 @app.route('/api/board', methods=['GET'])
-
 def get_board():
     return jsonify(board.get_board_state())
+
+@app.route("/api/move", methods=["POST"])
+def api_move_figure():
+    data = request.get_json()
+    
+    game_id = data.get("gameId")
+    figure_id = data.get("figureId")
+    to_position = data.get("toPosition")
+
+    if not game_id or not figure_id or not to_position:
+        return jsonify({"error": "Fehlende Parameter"}), 400
+
+    if game_id not in active_games:
+        return jsonify({"error": "Spiel existiert nicht"}), 404
+
+    game = active_games[game_id]
+
+    # Finde die Figur anhand der UUID
+    from_pos = None
+    for row in range(8):
+        for col in range(8):
+            piece = game.board.fields[row][col]
+            if piece and piece.id == figure_id:
+                from_pos = (row, col)
+                break
+        if from_pos:
+            break
+
+    if not from_pos:
+        return jsonify({"error": "Figur nicht gefunden"}), 404
+
+    # Zielposition umwandeln (z. B. "e4" → (4,4))
+    col_map = {letter: i for i, letter in enumerate("abcdefgh")}
+    to_pos = (8 - int(to_position[1]), col_map[to_position[0]])
+
+    # Figur bewegen
+    move_result = game.move_figure(from_pos, to_pos, figure_id)
+
+    if "Ungültiger Zug" in move_result:
+        return jsonify({"error": move_result}), 400
+
+    return jsonify({"message": "Zug erfolgreich", "board": game.get_board_state()})
 
 class ChessGame:
     def __init__(self, white_name="User 1", black_name="User 2"):

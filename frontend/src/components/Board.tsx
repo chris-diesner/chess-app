@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Square from "./Square";
-import Figure from "./Figure"; 
-import "../styles/Board.css"; 
+import Figure from "./Figure";
+import "../styles/Board.css";
 
-const API_URL = "http://localhost:5000/api/board"; 
+const API_URL = "http://localhost:5000/api/board";
+const MOVE_API_URL = "http://localhost:5000/api/move";
 
 const Board: React.FC = () => {
   const [boardState, setBoardState] = useState<(null | { type: string; color: string; position: string })[][]>([]);
@@ -14,11 +15,27 @@ const Board: React.FC = () => {
     fetch(API_URL)
       .then((res) => res.json())
       .then((data) => {
-        console.log("DEBUG: API Response", data); 
+        console.log("DEBUG: API Response", data);
         setBoardState(data);
       })
       .catch((err) => console.error("Fehler beim Laden des Bretts:", err));
   }, []);
+
+  const handleMoveFigure = (figureId: string, toPosition: string) => {
+    console.log(`Moving ${figureId} to ${toPosition}`);
+
+    fetch(MOVE_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ figureId, toPosition }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("DEBUG: Move Response", data);
+        setBoardState(data);
+      })
+      .catch((err) => console.error("Fehler beim Bewegen der Figur:", err));
+  };
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -32,7 +49,7 @@ const Board: React.FC = () => {
                 const figure = boardState[rowIndex]?.[colIndex] ?? null;
 
                 return (
-                  <Square key={position} isBlack={isBlack} position={position}>
+                  <Square key={position} isBlack={isBlack} position={position} onMoveFigure={handleMoveFigure}>
                     {figure && <Figure type={figure.type} color={figure.color} />}
                   </Square>
                 );

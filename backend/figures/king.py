@@ -1,4 +1,4 @@
-from figures.figure import Figure
+from backend.figures.figure import Figure
 
 class King(Figure):
     
