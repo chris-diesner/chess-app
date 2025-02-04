@@ -1,4 +1,4 @@
-from backend.chess_board import ChessBoard
+from chess_board import ChessBoard
 from backend.figures.king import King
 from backend.figures.pawn import Pawn
 from backend.figures.queen import Queen
