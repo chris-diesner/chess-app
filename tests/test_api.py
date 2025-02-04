@@ -17,7 +17,7 @@ def test_get_board_should_return_200OK_and_true_for_some_figures(client):
     assert len(data) == 8
     assert len(data[0]) == 8
     
-    assert data[0][0]['type'] == 'Turm'
+    assert data[0][0]['type'] == 'rook'
     assert data[0][0]['color'] == 'black'
     assert data[0][0]['position'] == 'a8'
     

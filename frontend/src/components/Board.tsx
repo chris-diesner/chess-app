@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import Square from "./Square";
-import Figure from "./Figure"; // Import für Figuren-Komponente
-import "../styles/Board.css"; // Falls Styling vorhanden ist
+import Figure from "./Figure"; 
+import "../styles/Board.css"; 
 
-const API_URL = "http://localhost:5000/api/board"; // API-URL anpassen!
+const API_URL = "http://localhost:5000/api/board"; 
 
 const Board: React.FC = () => {
   const [boardState, setBoardState] = useState<(null | { type: string; color: string; position: string })[][]>([]);
@@ -14,7 +14,7 @@ const Board: React.FC = () => {
     fetch(API_URL)
       .then((res) => res.json())
       .then((data) => {
-        console.log("DEBUG: API Response", data); // <-- Fügt diese Zeile hinzu
+        console.log("DEBUG: API Response", data); 
         setBoardState(data);
       })
       .catch((err) => console.error("Fehler beim Laden des Bretts:", err));
