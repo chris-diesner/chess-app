@@ -1,5 +1,5 @@
 import unittest
-from figures.bishop import Bishop
+from backend.figures.bishop import Bishop
 
 class TestBishop(unittest.TestCase):
     

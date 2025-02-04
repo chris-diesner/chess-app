@@ -1,22 +1,17 @@
 {
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": [
+        "./backend"
+    ],
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./tests",
+        "./backend",
         "-p",
         "test_*.py"
     ],
-    "python.testing.pytestEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": "explicit"
-    },
-    "javascript.updateImportsOnFileMove.enabled": "always",
-    "files.exclude": {
-        "node_modules": true
-    },
-    "python.testing.pytestArgs": [
-        "tests"
+    "python.analysis.extraPaths": [
+        "backend/tests"
     ]
 }

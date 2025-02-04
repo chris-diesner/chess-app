@@ -1,5 +1,5 @@
 import unittest
-from figures.king import King
+from backend.figures.king import King
 
 class TestKing(unittest.TestCase):
     def setUp(self):

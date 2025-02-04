@@ -1,11 +1,11 @@
 import unittest
-from chess_game import ChessGame
-from figures.pawn import Pawn
-from figures.rook import Rook
-from figures.knight import Knight
-from figures.bishop import Bishop
-from figures.queen import Queen
-from figures.king import King
+from backend.chess_game import ChessGame
+from backend.figures.pawn import Pawn
+from backend.figures.rook import Rook
+from backend.figures.knight import Knight
+from backend.figures.bishop import Bishop
+from backend.figures.queen import Queen
+from backend.figures.king import King
 
 class TestChessGame(unittest.TestCase):
     

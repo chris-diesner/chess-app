@@ -1,5 +1,5 @@
 import unittest
-from figures.queen import Queen
+from backend.figures.queen import Queen
 
 class TestQueen(unittest.TestCase):
     

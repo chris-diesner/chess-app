@@ -1,5 +1,5 @@
 import unittest
-from figures.knight import Knight
+from backend.figures.knight import Knight
 
 class TestKnight(unittest.TestCase):
     def setUp(self):

@@ -1,11 +1,11 @@
-from chess_board import ChessBoard
-from figures.king import King
-from figures.pawn import Pawn
-from figures.queen import Queen
-from figures.rook import Rook
-from figures.knight import Knight
-from figures.bishop import Bishop
-from user import User
+from backend.chess_board import ChessBoard
+from backend.figures.king import King
+from backend.figures.pawn import Pawn
+from backend.figures.queen import Queen
+from backend.figures.rook import Rook
+from backend.figures.knight import Knight
+from backend.figures.bishop import Bishop
+from backend.user import User
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import uuid

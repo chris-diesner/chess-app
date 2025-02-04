@@ -1,5 +1,5 @@
 import unittest
-from figures.rook import Rook
+from backend.figures.rook import Rook
 
 class TestRook(unittest.TestCase):
 

@@ -27,11 +27,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
           pip install flask pytest  # Flask & pytest installieren!
 
       - name: Discover and run unittest tests
         run: |
+          cd backend
           echo "Discovered unittest tests:"
           python -m unittest discover -s tests -p "test_*.py" -v
 
@@ -40,4 +41,5 @@ jobs:
 
       - name: Run API tests with pytest
         run: |
+          cd backend
           pytest tests/ --disable-warnings

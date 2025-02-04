@@ -1,6 +1,6 @@
 import unittest
-from figures.pawn import Pawn
-from figures.rook import Rook
+from backend.figures.pawn import Pawn
+from backend.figures.rook import Rook
 
 class TestPawn(unittest.TestCase):
     def setUp(self):
